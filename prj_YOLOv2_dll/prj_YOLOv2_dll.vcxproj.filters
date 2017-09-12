@@ -1,0 +1,311 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="3rdparty">
+      <UniqueIdentifier>{1c834beb-9ac8-4ce8-ac47-f3c1f5513774}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdparty\src">
+      <UniqueIdentifier>{74ca3597-b124-43dd-a837-e332bf991bfd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdparty\src\pthread">
+      <UniqueIdentifier>{df78166d-74c5-4323-b975-154a0fda50f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdparty\include">
+      <UniqueIdentifier>{2cdcdaa1-ffd9-4819-b779-a256ae69e683}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdparty\src\yolo">
+      <UniqueIdentifier>{5c151368-b93f-45e3-99a2-dbfa4dc4f584}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\include\config.h">
+      <Filter>3rdparty\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\include\context.h">
+      <Filter>3rdparty\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\include\implement.h">
+      <Filter>3rdparty\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\include\need_errno.h">
+      <Filter>3rdparty\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\include\pthread.h">
+      <Filter>3rdparty\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\include\sched.h">
+      <Filter>3rdparty\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\include\semaphore.h">
+      <Filter>3rdparty\include</Filter>
+    </ClInclude>
+    <ClInclude Include="yolo_v2.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="install\YOLOv2SE.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="prj_YOLOv2_dll.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="dllmain.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\pthread\pthread.c">
+      <Filter>3rdparty\src\pthread</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\activation_layer.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\activations.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\art.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\avgpool_layer.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\batchnorm_layer.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\blas.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\box.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\captcha.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\cifar.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\classifier.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\coco.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\col2im.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\compare.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\connected_layer.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\convolutional_layer.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\cost_layer.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\cpu_gemm.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\crnn_layer.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\crop_layer.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\cuda.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\darknet.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\data.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\deconvolutional_layer.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\demo.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\detection_layer.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\detector.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\dice.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\dropout_layer.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\gemm.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\getopt.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\gettimeofday.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\go.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\gru_layer.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\im2col.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\image.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\layer.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\list.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\local_layer.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\matrix.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\maxpool_layer.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\network.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\nightmare.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\normalization_layer.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\option_list.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\parser.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\region_layer.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\reorg_layer.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\rnn.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\rnn_layer.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\rnn_vid.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\route_layer.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\shortcut_layer.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\softmax_layer.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\super.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\swag.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\tag.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\tree.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\utils.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\voxel.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\writing.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\src\yolo\yolo.cpp">
+      <Filter>3rdparty\src\yolo</Filter>
+    </ClCompile>
+    <ClCompile Include="yolo_v2.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="install\YOLOv2SE.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="..\3rdparty\src\yolo\activation_kernels.cu">
+      <Filter>3rdparty\src\yolo</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\3rdparty\src\yolo\avgpool_layer_kernels.cu">
+      <Filter>3rdparty\src\yolo</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\3rdparty\src\yolo\blas_kernels.cu">
+      <Filter>3rdparty\src\yolo</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\3rdparty\src\yolo\col2im_kernels.cu">
+      <Filter>3rdparty\src\yolo</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\3rdparty\src\yolo\convolutional_kernels.cu">
+      <Filter>3rdparty\src\yolo</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\3rdparty\src\yolo\crop_layer_kernels.cu">
+      <Filter>3rdparty\src\yolo</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\3rdparty\src\yolo\deconvolutional_kernels.cu">
+      <Filter>3rdparty\src\yolo</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\3rdparty\src\yolo\dropout_layer_kernels.cu">
+      <Filter>3rdparty\src\yolo</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\3rdparty\src\yolo\im2col_kernels.cu">
+      <Filter>3rdparty\src\yolo</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\3rdparty\src\yolo\maxpool_layer_kernels.cu">
+      <Filter>3rdparty\src\yolo</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\3rdparty\src\yolo\network_kernels.cu">
+      <Filter>3rdparty\src\yolo</Filter>
+    </CudaCompile>
+  </ItemGroup>
+</Project>
