@@ -10,44 +10,60 @@
 
 ## Setup for train
 You need `backup/`, `bin/`, `train/`, `obj.cfg`, `obj.data`, `obj.names`, `test.txt`, `train.txt`.
-
+All files are included in my repository. You can execute [YOLOv2/train.bat](https://github.com/springkim/YOLOv2_SpringEdition/blob/master/YOLOv2/train.bat) for training.
 
 ## Setup for detect
+#### 1. Download pre-trained model and dll files.
+[YOLOv2_SE_Detection_Example/download_pretrained_model_and_dll.bat](https://github.com/springkim/YOLOv2_SpringEdition/blob/master/YOLOv2_SE_Detection_Example/download_pretrained_model_and_dll.bat)
 
-![](https://i.imgur.com/XjTlCMi.jpg)
+#### 2. Run
+
+Example source is in my repository. You need only 1 header file and 2 dll files.
+
+
 ```
 Recall : 0.481481
 Precision : 0.722222
 Average detection time : 0.0363674
 FPS : 27.4971
 ```
+![](https://i.imgur.com/XjTlCMi.jpg)
 ## Reference
+The class `YOLOv2` that in `YOLOv2SE.h` has 3 method.
+```cpp
+void Create(std::string weights,std::string cfg,std::string names);
+```
+This method load trained model(**weights**), network configuration(**cfg**) and class naming file(**names**)
+* **Parameter**
+	* **weights** : trained model path(e.g. "obj.weights")
+	* **cfg** : network configuration file(e.g. "obj.cfg")
+	* **names** : class naming file(e.g. "obj.names")
+
+```cpp
+std::vector<BoxSE> Detect(cv::Mat img, float threshold);
+std::vector<BoxSE> Detect(std::string file, float threshold);
+std::vector<BoxSE> Detect(IplImage* img, float threshold);
+```
+This method is detecting objects of `file`,`cv::Mat` or `IplImage`.
+* **Parameter**
+	* **file** : image file path
+	* **img** : 3-channel image.
+	* **threshold** : It removes predictive boxes if there score is less than threshold.
+
+```cpp
+void Release();
+```
+Release loaded network.
 
 ## Technical issue
 
+Original YOLOv2 has so many dependencies. I removed that.
+
+A YOLOv2_Train_SE.exe is automatically choosing multi-gpu training. and select backup weights.
+
 ## Software requirement
 
-## Hardware requirement
-
-
-
-It has only 4 c-style function.
-
-```cpp
-void YoloTrain(char* _base_dir, char* _datafile, char* _cfgfile);
-int* YoloLoad(char* cfgfile, char* weightsfile);
-int YoloDetectFromFile(char* img_path, int* _net, float threshold, float* result, int result_sz);
-int YoloDetectFromBytesImage(unsigned char* img, int w, int h, int* _net, float threshold, float* result, int result_sz);
-```
-You can use `install\YOLOv2SE.hpp`, `install\YOLOv2SE.cpp` in **c++**.
-
-There is a example source code in `prj_example_*\`.
-
-#### Requirement
-* CUDA 8.0
 * Visual Studio 2015
+* CUDA 8.0
 
-#### How to build.
-1. open `network\yolo.weights.download.html`
-
-Enjoy YOLO.
+## Hardware requirement
