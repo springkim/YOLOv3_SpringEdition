@@ -1,0 +1,12 @@
+train/0020.jpg
+train/0044.jpg
+train/0010.jpg
+train/0033.jpg
+train/0021.jpg
+train/0028.jpg
+train/0041.jpg
+train/0057.jpg
+train/0009.jpg
+train/0039.jpg
+train/0059.jpg
+train/0055.jpg

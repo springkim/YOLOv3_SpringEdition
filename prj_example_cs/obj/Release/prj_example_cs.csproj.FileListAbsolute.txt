@@ -1,9 +1,0 @@
-C:\Users\spring\Documents\Visual Studio 2015\Projects\YOLOv2_SpringEdition\prj_example_cs\bin\Release\prj_example_cs.exe.config
-C:\Users\spring\Documents\Visual Studio 2015\Projects\YOLOv2_SpringEdition\prj_example_cs\bin\Release\prj_example_cs.exe
-C:\Users\spring\Documents\Visual Studio 2015\Projects\YOLOv2_SpringEdition\prj_example_cs\bin\Release\prj_example_cs.pdb
-C:\Users\spring\Documents\Visual Studio 2015\Projects\YOLOv2_SpringEdition\prj_example_cs\obj\Release\prj_example_cs.csprojResolveAssemblyReference.cache
-C:\Users\spring\Documents\Visual Studio 2015\Projects\YOLOv2_SpringEdition\prj_example_cs\obj\Release\prj_example_cs.exe
-C:\Users\spring\Documents\Visual Studio 2015\Projects\YOLOv2_SpringEdition\prj_example_cs\obj\Release\prj_example_cs.pdb
-C:\Users\spring\Documents\Visual Studio 2015\Projects\YOLOv2_SpringEdition\x64\Release\prj_example_cs.exe.config
-C:\Users\spring\Documents\Visual Studio 2015\Projects\YOLOv2_SpringEdition\x64\Release\prj_example_cs.exe
-C:\Users\spring\Documents\Visual Studio 2015\Projects\YOLOv2_SpringEdition\x64\Release\prj_example_cs.pdb

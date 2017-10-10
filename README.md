@@ -1,13 +1,35 @@
-# YOLOv2_SpringEdition
-#### YOLO C++ wrapper dll library
+# YOLOv2_SpringEdition <img src="https://i.imgur.com/oYejfWp.png" title="Windows8" width="48">
+###### YOLOv2 C++ library. (Train,Detect both)
 
-* remove pthread,opencv dependency.
-* support multi-gpu
-* c++ wrapper class
+* Remove pthread,opencv dependency.
+* You need only 1 files for YOLO deep-learning.
 
-You need only 2 files for YOLO deep-learning.
+<img src="https://i.imgur.com/ElCyyzT.png" title="Windows8" width="48"><img src="https://i.imgur.com/O5bye0l.png" width="48">
 
-`lnstall/YOLOv2SE.dll` , `install/cudnn43_5.dll`
+
+
+## Setup for train
+You need `backup/`, `bin/`, `train/`, `obj.cfg`, `obj.data`, `obj.names`, `test.txt`, `train.txt`.
+
+
+## Setup for detect
+
+![](https://i.imgur.com/XjTlCMi.jpg)
+```
+Recall : 0.481481
+Precision : 0.722222
+Average detection time : 0.0363674
+FPS : 27.4971
+```
+## Reference
+
+## Technical issue
+
+## Software requirement
+
+## Hardware requirement
+
+
 
 It has only 4 c-style function.
 

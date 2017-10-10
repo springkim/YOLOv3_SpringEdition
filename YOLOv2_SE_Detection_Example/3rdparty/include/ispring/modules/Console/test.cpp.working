@@ -1,0 +1,170 @@
+#include<iostream>
+#include<fstream>
+#include<string>
+#include<sstream>
+#include<map>
+#include<utility>
+#include<windows.h>
+#include<unistd.h>
+#include<sys/time.h>
+
+class _Console {
+public:
+	class cstream {
+		std::string m_key;
+	public:
+		cstream(std::string key) {
+			m_key = key;
+		}
+		cstream& operator<<(char val) {
+			return this->operator<<(std::to_string(val));
+		}
+		cstream& operator<<(int val) {
+			return this->operator<<(std::to_string(val));
+		}
+		cstream& operator<<(float val) {
+			return this->operator<<(std::to_string(val));
+		}
+		cstream& operator<<(double val) {
+			return this->operator<<(std::to_string(val));
+		}
+		cstream& operator<<(std::string str) {
+			while(access(m_key.c_str(),F_OK)==0){	//파일이 있으면 대기
+				usleep(1000);
+			}
+			std::fstream fout;
+			fout.open(m_key, std::ios::out);
+			fout << str;
+			fout.close();
+			return *this;
+		}
+	};
+private:
+	std::map<std::string, std::pair<std::string, _Console::cstream>> consoles;
+	std::string GenerateSharedFileName() {
+		static struct timeval mytime;
+		gettimeofday(&mytime, NULL);
+		return std::to_string(mytime.tv_sec) + std::to_string(mytime.tv_usec) + ".txt";
+	}
+public:
+	~_Console() {
+		for (auto&e : consoles) {
+			std::fstream fout;
+			fout.open(e.second.first, std::ios::out);
+			fout << "$$$EXIT$$$";
+			fout.close();
+		}
+	}
+	static std::string code;
+	std::string GetExe(){
+		char c_temp_path[_MAX_PATH];
+		GetTempPathA(_MAX_PATH, c_temp_path);
+		std::string exe=c_temp_path+std::string("ISpring_wgpp_console.exe");
+		return exe;
+	}
+	void Init(){
+		std::ostringstream oss;
+		std::string exe=GetExe();
+		char c_temp_path[_MAX_PATH];
+		GetTempPathA(_MAX_PATH, c_temp_path);
+		std::string temp_path=c_temp_path;
+		if(access(exe.c_str(),F_OK)!=0){
+			std::fstream fout;
+			fout.open(temp_path+"ISpring_WGPP_Console.cpp",std::ios::out);
+			fout << code;
+			fout.close();
+			oss << "g++ " << temp_path+"ISpring_WGPP_Console.cpp" << " -o " << exe << " 2> "<< temp_path <<"ISpring_wgpp_console2.txt > " <<temp_path<<"ISpring_wgpp_console.txt";
+			system(oss.str().c_str());
+			
+		}
+	}
+	void Create(std::string window) {
+		Init();
+		auto it = consoles.find(window);
+		if (it == consoles.end()) {
+			std::string key = GenerateSharedFileName();
+			consoles.insert(std::make_pair(window, std::make_pair(key, cstream(key))));
+			std::ostringstream oss;
+			std::string exe=GetExe();
+			oss << "start " << exe <<" " << key << " " << window;
+			system(oss.str().c_str());
+		} else {
+			std::cerr << window << " is already exist!" << std::endl;
+		}
+	}
+	_Console::cstream& operator[](std::string window) {
+		auto it = consoles.find(window);
+		if (it != consoles.end()) {
+			return it->second.second;
+		} else {
+			std::cerr << window << " is not existing consolw window!" << std::endl;
+			exit(1);
+			return *new cstream("impossible");
+		}
+	}
+};
+__attribute__((weak))  std::string _Console::code="#include<iostream>\n#include<fstream>\n#include<unistd.h>\n#include<sstream>\n\
+int main(int argc,const char* argv[]){\
+	if(argc!=3){\
+		std::cout << \"Argv is Secret shared file\" << std::endl;\
+		return EXIT_FAILURE;\
+	}\
+	std::ostringstream oss;\
+	oss << \"title \" << argv[2];\
+	system(oss.str().c_str());\
+	std::string file=argv[1];\
+	while(1){\
+		while(access(file.c_str(),F_OK)!=0){\
+			usleep(1000);\
+		}\
+		while(access(file.c_str(),W_OK)!=0){\
+			usleep(1000);\
+		}\
+		std::ifstream fin;\
+		fin.open(file);\
+		std::string str;  \
+		str.assign(std::istreambuf_iterator<char>(fin),std::istreambuf_iterator<char>()); \
+		fin.close();\
+		std::ostringstream oss;\
+		oss << \"del \\\"\" << file  << \"\\\"\";\
+		system(oss.str().c_str());\
+		if(str==\"$$$EXIT$$$\"){\
+			break;\
+		}else{\
+			std::cout << str;\
+		}\
+	}\
+	return 0;\
+}\
+";
+_Console Console;
+
+template<class e, class t, class a> //string version
+auto get_endl(const std::basic_string<e, t, a>&)
+-> decltype(&std::endl<e, t>)
+{
+	return std::endl<e, t>;
+}
+
+template<class e, class t> //stream version
+auto get_endl(const std::basic_ostream<e, t>&)-> decltype(&std::endl<e, t>)
+{
+	return std::endl<e, t>;
+}
+inline _Console::cstream& operator<<(_Console::cstream& con, decltype(std::endl<char, std::char_traits<char>>) endl) {
+	con << "\n";
+	return con;
+}
+int main() {
+	
+	
+	Console.Create("window2");
+	for (int i = 0; i < 1000; i++) {
+		Console["window2"] << "hello, world" << "\t" << i <<  std::endl;
+		std::cout << "hello, world" << "\t" << i <<  std::endl;
+	}
+	system("pause");
+	
+	
+	return 0;
+}
