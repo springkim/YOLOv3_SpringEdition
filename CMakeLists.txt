@@ -139,7 +139,7 @@ if(UNIX)
 			/usr/local/cuda/lib64/libcudnn.so
 			#/usr/lib/aarch64-linux-gnu/libcudnn.so	# for Jetson Tx2
 	)
-	target_include_directories(YOLOv3SE PUBLIC ${PROJECT_SOURCE_DIR}/include)
+	target_include_directories(YOLOv2SE PUBLIC ${PROJECT_SOURCE_DIR}/include)
 endif(UNIX)
 if(MSVC)
 	include_directories(${PROJECT_SOURCE_DIR}/3rdparty/include)
