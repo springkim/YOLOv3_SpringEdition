@@ -10,7 +10,7 @@
 
 #### Do you want train YOLOv2 as double click? and detect using YOLOv2 as below?
 ```cpp
-YOLOv3 detector;
+YOLOv2 detector;
 detector.Create("coco.weights", "coco.cfg", "coco.names");
 cv::Mat img=cv::imread("a.jpg");
 std::vector<BoxSE> boxes = detector.Detect(img, 0.5F);
