@@ -1,35 +1,44 @@
-# YOLOv2_SpringEdition <img src="https://i.imgur.com/oYejfWp.png" title="Windows8" width="48">
-###### YOLOv2 C++ library. (Train,Detect both)
+## YOLOv3_SpringEdition <img src="https://i.imgur.com/oYejfWp.png" title="Windows8" width="48">
+
+<img src="https://i.imgur.com/ElCyyzT.png" title="Windows8" width="48"><img src="https://i.imgur.com/O5bye0l.png" width="48"><img src="https://i.imgur.com/kmfOMZz.png" width="48"><img src="https://i.imgur.com/6OT8yM9.png" width="48">
+
+#### YOLOv3 C++ Windows and Linux interface library. (Train,Detect both)
 
 * Remove pthread,opencv dependency.
 * You need only 1 files for YOLO deep-learning.
+* Support windows, linux as same interface.
 
-<img src="https://i.imgur.com/ElCyyzT.png" title="Windows8" width="48"><img src="https://i.imgur.com/O5bye0l.png" width="48">
-
-
-
-## Setup for train
-You need `backup/`, `bin/`, `train/`, `obj.cfg`, `obj.data`, `obj.names`, `test.txt`, `train.txt`.
-All files are included in my repository. You can execute [YOLOv2/train.bat](https://github.com/springkim/YOLOv2_SpringEdition/blob/master/YOLOv2/train.bat) for training.
-
-## Setup for detect
-#### 1. Download pre-trained model and dll files.
-[YOLOv2_SE_Detection_Example/download_pretrained_model_and_dll.bat](https://github.com/springkim/YOLOv2_SpringEdition/blob/master/YOLOv2_SE_Detection_Example/download_pretrained_model_and_dll.bat)
-
-#### 2. Run
-
-Example source is in my repository. You need only 1 header file and 2 dll files.
-
-
+#### Do you want train YOLOv3 as double click? and detect using YOLOv3 as below?
+```cpp
+YOLOv3 detector;
+detector.Create("coco.weights", "coco.cfg", "coco.names");
+cv::Mat img=cv::imread("a.jpg");
+std::vector<BoxSE> boxes = detector.Detect(img, 0.5F);
 ```
-Recall : 0.481481
-Precision : 0.722222
-Average detection time : 0.0363674
-FPS : 27.4971
-```
-![](https://i.imgur.com/XjTlCMi.jpg)
-## Reference
-The class `YOLOv2` that in `YOLOv2SE.h` has 3 method.
+* Then you've come to the right place.
+
+### 1. Setup for train.
+You need only 2 files for train that are **YOLOv3SE_Train.exe** and **cudnn64_5.dll** on Windows.
+If you are on Linux, then you need only **YOLOv3SE_Train**.
+This files are in `YOLOv3_SpringEdition/bin`.
+
+The requirement interface not changed. Same as **[pjreddie/darknet](https://github.com/pjreddie/darknet)**.
+
+There is a example training directory `Yolov3_SpringEdition_Train/`. You can start training using above files.
+
+Actually, all the interfaces are same with YOLOv2. So you can easily train your own data.
+
+The **YOLOv3SE_Train.exe**'s arguments are [base directory],[data file path] and [cfg file path].
+
+And YOLOv3SE_Train.exe is automatically choosing multi-gpu training. and select latest backup weights file.
+
+### 2. Setup for detect
+
+Just include **YOLOv3SE.h** and use it. See  `YOLOv3_SpringEdition_Test/`.
+
+##### Reference
+
+The class `YOLOv3` that in `YOLOv3SE.h` has 3 methods.
 ```cpp
 void Create(std::string weights,std::string cfg,std::string names);
 ```
@@ -57,13 +66,20 @@ Release loaded network.
 
 ## Technical issue
 
-Original YOLOv2 has so many dependencies. I removed that.
+Original YOLOv3(darknet) is linux version.
+And **[AlexeyAB](https://github.com/AlexeyAB/darknet)** already made YOLOv3 Windows version.
+But, his detection method is too slow on Windows. I don't know why exactly. Maybe it has bottleneck.
+So, I converted **[darknet](https://github.com/pjreddie/darknet)**(YOLOv3 only) again.
 
-A YOLOv2_Train_SE.exe is automatically choosing multi-gpu training. and select backup weights.
+Incompatible with yolo v2(darknet19, densenet201, resnet50). It works only on darknet53.
 
 ## Software requirement
 
-* Visual Studio 2015
-* CUDA 8.0
+* CMake
+* CUDA 8.0(Maybe it works on CUDA9)
+* OpenCV
+* Visual Studio
 
 ## Hardware requirement
+
+* NVIDIA GPU
