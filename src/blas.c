@@ -6,22 +6,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-void reorg_cpu(float *x, int w, int h, int c, int batch, int stride, int forward, float *out)
+void reorg_cpu(float *x, int out_w, int out_h, int out_c, int batch, int stride, int forward, float *out)
 {
     int b,i,j,k;
-    int out_c = c/(stride*stride);
+    int in_c = out_c/(stride*stride);
+
+	//printf("\n out_c = %d, out_w = %d, out_h = %d, stride = %d, forward = %d \n", out_c, out_w, out_h, stride, forward);
+	//printf("  in_c = %d,  in_w = %d,  in_h = %d \n", in_c, out_w*stride, out_h*stride);
 
     for(b = 0; b < batch; ++b){
-        for(k = 0; k < c; ++k){
-            for(j = 0; j < h; ++j){
-                for(i = 0; i < w; ++i){
-                    int in_index  = i + w*(j + h*(k + c*b));
-                    int c2 = k % out_c;
-                    int offset = k / out_c;
+        for(k = 0; k < out_c; ++k){
+            for(j = 0; j < out_h; ++j){
+                for(i = 0; i < out_w; ++i){
+                    int in_index  = i + out_w*(j + out_h*(k + out_c*b));
+                    int c2 = k % in_c;
+                    int offset = k / in_c;
                     int w2 = i*stride + offset % stride;
                     int h2 = j*stride + offset / stride;
-                    int out_index = w2 + w*stride*(h2 + h*stride*(c2 + out_c*b));
-                    if(forward) out[out_index] = x[in_index];
+                    int out_index = w2 + out_w*stride*(h2 + out_h*stride*(c2 + in_c*b));
+                    if(forward) out[out_index] = x[in_index];	// used by default for forward (i.e. forward = 0)
                     else out[in_index] = x[out_index];
                 }
             }
@@ -259,7 +262,7 @@ float dot_cpu(int N, float *X, int INCX, float *Y, int INCY)
     return dot;
 }
 
-void softmax(float *input, int n, float temp, int stride, float *output)
+void softmax(float *input, int n, float temp, float *output, int stride)
 {
     int i;
     float sum = 0;
@@ -283,8 +286,24 @@ void softmax_cpu(float *input, int n, int batch, int batch_offset, int groups, i
     int g, b;
     for(b = 0; b < batch; ++b){
         for(g = 0; g < groups; ++g){
-            softmax(input + b*batch_offset + g*group_offset, n, temp, stride, output + b*batch_offset + g*group_offset);
+            softmax(input + b*batch_offset + g*group_offset, n, temp, output + b*batch_offset + g*group_offset, stride);
         }
     }
 }
 
+void upsample_cpu(float *in, int w, int h, int c, int batch, int stride, int forward, float scale, float *out)
+{
+	int i, j, k, b;
+	for (b = 0; b < batch; ++b) {
+		for (k = 0; k < c; ++k) {
+			for (j = 0; j < h*stride; ++j) {
+				for (i = 0; i < w*stride; ++i) {
+					int in_index = b*w*h*c + k*w*h + (j / stride)*w + i / stride;
+					int out_index = b*w*h*c*stride*stride + k*w*h*stride*stride + j*w*stride + i;
+					if (forward) out[out_index] = scale*in[in_index];
+					else in[in_index] += scale*out[out_index];
+				}
+			}
+		}
+	}
+}

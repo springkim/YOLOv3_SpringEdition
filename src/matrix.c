@@ -1,6 +1,5 @@
 #include "matrix.h"
 #include "utils.h"
-#include "blas.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,8 +22,8 @@ float matrix_topk_accuracy(matrix truth, matrix guess, int k)
     for(i = 0; i < truth.rows; ++i){
         top_k(guess.vals[i], n, k, indexes);
         for(j = 0; j < k; ++j){
-            int class = indexes[j];
-            if(truth.vals[i][class]){
+            int class_id = indexes[j];
+            if(truth.vals[i][class_id]){
                 ++correct;
                 break;
             }
@@ -72,20 +71,6 @@ void matrix_add_matrix(matrix from, matrix to)
             to.vals[i][j] += from.vals[i][j];
         }
     }
-}
-
-matrix copy_matrix(matrix m)
-{
-    matrix c = {0};
-    c.rows = m.rows;
-    c.cols = m.cols;
-    c.vals = calloc(c.rows, sizeof(float *));
-    int i;
-    for(i = 0; i < c.rows; ++i){
-        c.vals[i] = calloc(c.cols, sizeof(float));
-        copy_cpu(c.cols, m.vals[i], 1, c.vals[i], 1);
-    }
-    return c;
 }
 
 matrix make_matrix(int rows, int cols)

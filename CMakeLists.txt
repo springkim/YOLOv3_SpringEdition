@@ -1,12 +1,12 @@
 #
-#  CMakeList.txt
-#  YOLOv2_SpringEdition
+#  CMakeList.txt.pl
+#  YOLOv3_SpringEdition
 #
 #  Created by kimbomm on 2018. 04. 01...
 #  Copyright 2018 Sogang CVIP. All rights reserved.
 #
 cmake_minimum_required(VERSION 3.4)
-project(YOLOv2_SpringEdition)
+project(YOLOv3_SpringEdition)
 
 find_package(CUDA QUIET REQUIRED)
 include(FindCUDA)
@@ -79,8 +79,6 @@ set(SOURCE_FILES
         src/list.h
         src/local_layer.c
         src/local_layer.h
-        src/lstm_layer.c
-        src/lstm_layer.h
         src/matrix.c
         src/matrix.h
         src/maxpool_layer.c
@@ -109,8 +107,13 @@ set(SOURCE_FILES
         src/stb_image_write.h
         src/tree.c
         src/tree.h
+        src/upsample_layer.c
+        src/upsample_layer.h
         src/utils.c
         src/utils.h
+        src/yolo_layer.c
+        src/yolo_layer.h
+		src/reorg_old_layer.c
         src/activation_kernels.cu
         src/convolutional_kernels.cu
         src/im2col_kernels.cu
@@ -121,6 +124,7 @@ set(SOURCE_FILES
         src/deconvolutional_kernels.cu
         src/col2im_kernels.cu
         src/dropout_layer_kernels.cu
+		src/network_kernels.cu
         )
 add_library(cuda INTERFACE)
 set_target_properties(cuda PROPERTIES
@@ -129,23 +133,23 @@ set_target_properties(cuda PROPERTIES
 )
 if(UNIX)
 	include_directories(/usr/local/cuda/include)
-	cuda_add_executable(YOLOv2SE_Train ${SOURCE_FILES} src/main.c)   #Make train executable
-	target_link_libraries(YOLOv2SE_Train cuda pthread m
+	cuda_add_executable(YOLOv3SE_Train ${SOURCE_FILES} src/main.c)   #Make train executable
+	target_link_libraries(YOLOv3SE_Train cuda pthread m
 			/usr/local/cuda/lib64/libcudnn.so
 	)
 	add_definitions(-D_WINDLL) #Do not print any stdout, stderr
-	cuda_add_library(YOLOv2SE SHARED ${SOURCE_FILES} src/main.c src/yolo_v2.c)       #make so file
-	target_link_libraries(YOLOv2SE cuda pthread m
+	cuda_add_library(YOLOv3SE SHARED ${SOURCE_FILES} src/main.c src/yolo_v3.c)       #make so file
+	target_link_libraries(YOLOv3SE cuda pthread m
 			/usr/local/cuda/lib64/libcudnn.so
 			#/usr/lib/aarch64-linux-gnu/libcudnn.so	# for Jetson Tx2
 	)
-	target_include_directories(YOLOv2SE PUBLIC ${PROJECT_SOURCE_DIR}/include)
+	target_include_directories(YOLOv3SE PUBLIC ${PROJECT_SOURCE_DIR}/include)
 endif(UNIX)
 if(MSVC)
 	include_directories(${PROJECT_SOURCE_DIR}/3rdparty/include)
 	set(PTHREAD_SRC ${PROJECT_SOURCE_DIR}/3rdparty/src/pthread/pthread.c)
-	cuda_add_library(libYOLOv2SE SHARED ${SOURCE_FILES} ${PTHREAD_SRC} src/yolo_v2.c)       #Make dll file
-	cuda_add_executable(YOLOv2SE_Train ${SOURCE_FILES} ${PTHREAD_SRC} src/main.c)   		#Make train executable
-	target_link_libraries(YOLOv2SE_Train ${PROJECT_SOURCE_DIR}/3rdparty/lib/cudnn.lib cuda)
-	target_link_libraries(libYOLOv2SE ${PROJECT_SOURCE_DIR}/3rdparty/lib/cudnn.lib cuda)
+	cuda_add_library(libYOLOv3SE SHARED ${SOURCE_FILES} ${PTHREAD_SRC} src/yolo_v3.c)       #Make dll file
+	cuda_add_executable(YOLOv3SE_Train ${SOURCE_FILES} ${PTHREAD_SRC} src/main.c)   		#Make train executable
+	target_link_libraries(YOLOv3SE_Train ${PROJECT_SOURCE_DIR}/3rdparty/lib/cudnn.lib cuda)
+	target_link_libraries(libYOLOv3SE ${PROJECT_SOURCE_DIR}/3rdparty/lib/cudnn.lib cuda)
 endif(MSVC)
