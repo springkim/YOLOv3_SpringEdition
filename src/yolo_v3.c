@@ -4,32 +4,46 @@ int YoloDetect(image img, int* _net, float threshold, float* result, int result_
 	network* net = (network*)_net;
 	
 	image im = img;
-	image sized = letterbox_image(im, net->w, net->h);
+	image sized = resize_image(im, net->w, net->h);
 
 	layer l = net->layers[net->n - 1];
 
 
-	float *prediction = network_predict(*net, sized.data);
+	network_predict(*net, sized.data);
 
 
 	int nboxes = 0;
 	int letterbox = 0;
 	float hier_thresh = 0.5;
-	detection *dets = get_network_boxes(&net, im.w, im.h, threshold, hier_thresh, 0, 1, &nboxes, letterbox);
+	detection *dets = get_network_boxes(net, im.w, im.h, threshold, hier_thresh, 0, 1, &nboxes, letterbox);
+
 	do_nms_sort_v3(dets, nboxes, l.classes, 0.45F);
+
 	int result_idx = 0;
 	for (size_t i = 0; i < nboxes; ++i) {
 		box b = dets[i].bbox;
 		int const obj_id = max_index(dets[i].prob, l.classes);
 		float const prob = dets[i].prob[obj_id];
+		int left = (b.x - b.w / 2.)*im.w;
+		int right = (b.x + b.w / 2.)*im.w;
+		int top = (b.y - b.h / 2.)*im.h;
+		int bot = (b.y + b.h / 2.)*im.h;
 
+		if (left < 0) left = 0;
+		if (right > im.w - 1) right = im.w - 1;
+		if (top < 0) top = 0;
+		if (bot > im.h - 1) bot = im.h - 1;
 		if (prob > threshold) {
 			result[result_idx * 6 + 0] = obj_id;
 			result[result_idx * 6 + 1] = prob;
-			result[result_idx * 6 + 2] = MAX((double)0, (b.x - b.w / 2.)*im.w);
+			/*result[result_idx * 6 + 2] = MAX((double)0, (b.x - b.w / 2.)*im.w);
 			result[result_idx * 6 + 3] = MAX((double)0, (b.y - b.h / 2.)*im.h);
 			result[result_idx * 6 + 4] = b.w*im.w;
-			result[result_idx * 6 + 5] = b.h*im.h;
+			result[result_idx * 6 + 5] = b.h*im.h;*/
+			result[result_idx * 6 + 2] = left;
+			result[result_idx * 6 + 3] = top;
+			result[result_idx * 6 + 4] = right-left;
+			result[result_idx * 6 + 5] = bot-top;
 			result_idx++;
 		}
 	}
@@ -51,9 +65,8 @@ int YoloDetect(image img, int* _net, float threshold, float* result, int result_
 */
 
 DLL_MACRO int* YoloLoad(char* cfgfile, char* weightsfile) {
-	network* net = NULL;//(network*)malloc(sizeof(network));
-	//memset(net, 0, sizeof(network));
-	*net = parse_network_cfg(cfgfile);
+	network* net=(network*)calloc(1,sizeof(network));
+	*net = parse_network_cfg_custom(cfgfile, 1);
 	load_weights(net, weightsfile);
 	set_batch_network(net, 1);
 	srand(920217);

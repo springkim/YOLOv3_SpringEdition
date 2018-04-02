@@ -1,5 +1,5 @@
 #
-#  CMakeList.txt.pl
+#  CMakeList.txt
 #  YOLOv3_SpringEdition
 #
 #  Created by kimbomm on 2018. 04. 01...
@@ -137,8 +137,9 @@ if(UNIX)
 	target_link_libraries(YOLOv3SE_Train cuda pthread m
 			/usr/local/cuda/lib64/libcudnn.so
 	)
-	add_definitions(-D_WINDLL) #Do not print any stdout, stderr
+	#add_definitions(-D_WINDLL) #Do not print any stdout, stderr
 	cuda_add_library(YOLOv3SE SHARED ${SOURCE_FILES} src/main.c src/yolo_v3.c)       #make so file
+	SET_TARGET_PROPERTIES(YOLOv3SE PROPERTIES COMPILE_FLAGS "-D_WINDLL")
 	target_link_libraries(YOLOv3SE cuda pthread m
 			/usr/local/cuda/lib64/libcudnn.so
 			#/usr/lib/aarch64-linux-gnu/libcudnn.so	# for Jetson Tx2

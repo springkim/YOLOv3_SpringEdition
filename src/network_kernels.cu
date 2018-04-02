@@ -413,8 +413,9 @@ float *network_predict_gpu(network net, float *input)
     state.train = 0;
     state.delta = 0;
     forward_network_gpu(net, state);
-    float *out = get_network_output_gpu(net);
+    //float *out = get_network_output_gpu(net);
     cuda_free(state.input);
-    return out;
+    //return out;
+    return NULL;
 }
 
