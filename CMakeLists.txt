@@ -25,7 +25,7 @@ add_definitions(-DGPU)
 add_definitions(-DCUDNN)
 add_definitions(-D_TIMESPEC_DEFINED)
 add_definitions(-D_TIMESPEC_DEFINED)
-add_definitions(-D_CRT_RAND_S)
+
 set(SOURCE_FILES
         src/detector.c
         src/darknet.h
@@ -148,8 +148,8 @@ if(UNIX)
 	target_link_libraries(YOLOv3SE_Train cuda pthread m
 			/usr/local/cuda/lib64/libcudnn.so
 	)
-	add_definitions(-D_WINDLL) #Do not print any stdout, stderr
 	cuda_add_library(YOLOv3SE SHARED ${SOURCE_FILES} src/main.c src/yolo_v3.c)       #make so file
+	SET_TARGET_PROPERTIES(YOLOv3SE PROPERTIES COMPILE_FLAGS "-D_WINDLL")
 	target_link_libraries(YOLOv3SE cuda pthread m
 			/usr/local/cuda/lib64/libcudnn.so
 			#/usr/lib/aarch64-linux-gnu/libcudnn.so	# for Jetson Tx2
@@ -157,6 +157,7 @@ if(UNIX)
 	target_include_directories(YOLOv3SE PUBLIC ${PROJECT_SOURCE_DIR}/include)
 endif(UNIX)
 if(MSVC)
+	add_definitions(-D_CRT_RAND_S)
 	include_directories(${PROJECT_SOURCE_DIR}/3rdparty/include)
 	set(PTHREAD_SRC ${PROJECT_SOURCE_DIR}/3rdparty/src/pthread/pthread.c)
 	cuda_add_library(libYOLOv3SE SHARED ${SOURCE_FILES} ${PTHREAD_SRC} src/yolo_v3.c)       #Make dll file
