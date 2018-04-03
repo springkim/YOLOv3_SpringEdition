@@ -9,6 +9,8 @@ inline unsigned int rand_ss(){
 	return r;
 }
 #define rand() rand_ss()
+#undef RAND_MAX
+#define RAND_MAX UINT_MAX
 #endif
 #include <stdio.h>
 #ifdef _WINDLL
