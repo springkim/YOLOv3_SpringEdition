@@ -67,9 +67,9 @@ int *read_map(char *filename)
     }
     return map;
 }
-
-void sorta_shuffle(char *arr, size_t n, size_t size, size_t sections)
+void sorta_shuffle(void* _arr, size_t n, size_t size, size_t sections)
 {
+	char* arr=(char*)_arr;
     size_t i;
     for(i = 0; i < sections; ++i){
         size_t start = n*i/sections;
@@ -79,8 +79,9 @@ void sorta_shuffle(char *arr, size_t n, size_t size, size_t sections)
     }
 }
 
-void shuffle(char *arr, size_t n, size_t size)
+void shuffle(void* _arr, size_t n, size_t size)
 {
+	char* arr=(char*)_arr;
     size_t i;
     void *swp = calloc(1, size);
     for(i = 0; i < n-1; ++i){
