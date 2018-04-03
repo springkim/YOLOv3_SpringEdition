@@ -1,5 +1,5 @@
 #
-#  CMakeList.txt
+#  CMakeList.txt.pl
 #  YOLOv3_SpringEdition
 #
 #  Created by kimbomm on 2018. 04. 01...
@@ -24,7 +24,8 @@ LIST(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_62,code=sm_62)    #for jetson 
 add_definitions(-DGPU)
 add_definitions(-DCUDNN)
 add_definitions(-D_TIMESPEC_DEFINED)
-
+add_definitions(-D_TIMESPEC_DEFINED)
+add_definitions(-D_CRT_RAND_S)
 set(SOURCE_FILES
         src/detector.c
         src/darknet.h
@@ -73,12 +74,18 @@ set(SOURCE_FILES
         src/im2col.h
         src/image.c
         src/image.h
+        src/l2norm_layer.c
+        src/l2norm_layer.h
         src/layer.c
         src/layer.h
         src/list.c
         src/list.h
         src/local_layer.c
         src/local_layer.h
+        src/logistic_layer.c
+        src/logistic_layer.h
+        src/lstm_layer.c
+        src/lstm_layer.h
         src/matrix.c
         src/matrix.h
         src/maxpool_layer.c
@@ -113,7 +120,6 @@ set(SOURCE_FILES
         src/utils.h
         src/yolo_layer.c
         src/yolo_layer.h
-		src/reorg_old_layer.c
         src/activation_kernels.cu
         src/convolutional_kernels.cu
         src/im2col_kernels.cu
@@ -124,22 +130,26 @@ set(SOURCE_FILES
         src/deconvolutional_kernels.cu
         src/col2im_kernels.cu
         src/dropout_layer_kernels.cu
-		src/network_kernels.cu
         )
 add_library(cuda INTERFACE)
 set_target_properties(cuda PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES ${CUDA_INCLUDE_DIRS}
     INTERFACE_LINK_LIBRARIES "${CUDA_LIBRARIES};${CUDA_curand_LIBRARY};${CUDA_CUFFT_LIBRARIES};${CUDA_CUBLAS_LIBRARIES}"
 )
+find_package(OpenMP)
+if (OPENMP_FOUND)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+endif()
 if(UNIX)
 	include_directories(/usr/local/cuda/include)
 	cuda_add_executable(YOLOv3SE_Train ${SOURCE_FILES} src/main.c)   #Make train executable
 	target_link_libraries(YOLOv3SE_Train cuda pthread m
 			/usr/local/cuda/lib64/libcudnn.so
 	)
-	#add_definitions(-D_WINDLL) #Do not print any stdout, stderr
+	add_definitions(-D_WINDLL) #Do not print any stdout, stderr
 	cuda_add_library(YOLOv3SE SHARED ${SOURCE_FILES} src/main.c src/yolo_v3.c)       #make so file
-	SET_TARGET_PROPERTIES(YOLOv3SE PROPERTIES COMPILE_FLAGS "-D_WINDLL")
 	target_link_libraries(YOLOv3SE cuda pthread m
 			/usr/local/cuda/lib64/libcudnn.so
 			#/usr/lib/aarch64-linux-gnu/libcudnn.so	# for Jetson Tx2

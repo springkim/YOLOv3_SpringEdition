@@ -6,25 +6,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-void reorg_cpu(float *x, int out_w, int out_h, int out_c, int batch, int stride, int forward, float *out)
+void reorg_cpu(float *x, int w, int h, int c, int batch, int stride, int forward, float *out)
 {
     int b,i,j,k;
-    int in_c = out_c/(stride*stride);
-
-	//printf("\n out_c = %d, out_w = %d, out_h = %d, stride = %d, forward = %d \n", out_c, out_w, out_h, stride, forward);
-	//printf("  in_c = %d,  in_w = %d,  in_h = %d \n", in_c, out_w*stride, out_h*stride);
+    int out_c = c/(stride*stride);
 
     for(b = 0; b < batch; ++b){
-        for(k = 0; k < out_c; ++k){
-            for(j = 0; j < out_h; ++j){
-                for(i = 0; i < out_w; ++i){
-                    int in_index  = i + out_w*(j + out_h*(k + out_c*b));
-                    int c2 = k % in_c;
-                    int offset = k / in_c;
+        for(k = 0; k < c; ++k){
+            for(j = 0; j < h; ++j){
+                for(i = 0; i < w; ++i){
+                    int in_index  = i + w*(j + h*(k + c*b));
+                    int c2 = k % out_c;
+                    int offset = k / out_c;
                     int w2 = i*stride + offset % stride;
                     int h2 = j*stride + offset / stride;
-                    int out_index = w2 + out_w*stride*(h2 + out_h*stride*(c2 + in_c*b));
-                    if(forward) out[out_index] = x[in_index];	// used by default for forward (i.e. forward = 0)
+                    int out_index = w2 + w*stride*(h2 + h*stride*(c2 + out_c*b));
+                    if(forward) out[out_index] = x[in_index];
                     else out[in_index] = x[out_index];
                 }
             }
@@ -68,7 +65,7 @@ void weighted_delta_cpu(float *a, float *b, float *s, float *da, float *db, floa
     }
 }
 
-void shortcut_cpu(int batch, int w1, int h1, int c1, float *add, int w2, int h2, int c2, float *out)
+void shortcut_cpu(int batch, int w1, int h1, int c1, float *add, int w2, int h2, int c2, float s1, float s2, float *out)
 {
     int stride = w1/w2;
     int sample = w2/w1;
@@ -87,7 +84,7 @@ void shortcut_cpu(int batch, int w1, int h1, int c1, float *add, int w2, int h2,
                 for(i = 0; i < minw; ++i){
                     int out_index = i*sample + w2*(j*sample + h2*(k + c2*b));
                     int add_index = i*stride + w1*(j*stride + h1*(k + c1*b));
-                    out[out_index] += add[add_index];
+                    out[out_index] = s1*out[out_index] + s2*add[add_index];
                 }
             }
         }
@@ -125,6 +122,27 @@ void variance_cpu(float *x, float *mean, int batch, int filters, int spatial, fl
         variance[i] *= scale;
     }
 }
+
+void l2normalize_cpu(float *x, float *dx, int batch, int filters, int spatial)
+{
+    int b,f,i;
+    for(b = 0; b < batch; ++b){
+        for(i = 0; i < spatial; ++i){
+            float sum = 0;
+            for(f = 0; f < filters; ++f){
+                int index = b*filters*spatial + f*spatial + i;
+                sum += powf(x[index], 2);
+            }
+            sum = sqrtf(sum);
+            for(f = 0; f < filters; ++f){
+                int index = b*filters*spatial + f*spatial + i;
+                x[index] /= sum;
+                dx[index] = (1 - x[index]) / sum;
+            }
+        }
+    }
+}
+
 
 void normalize_cpu(float *x, float *mean, float *variance, int batch, int filters, int spatial)
 {
@@ -244,6 +262,28 @@ void l1_cpu(int n, float *pred, float *truth, float *delta, float *error)
     }
 }
 
+void softmax_x_ent_cpu(int n, float *pred, float *truth, float *delta, float *error)
+{
+    int i;
+    for(i = 0; i < n; ++i){
+        float t = truth[i];
+        float p = pred[i];
+        error[i] = (t) ? -log(p) : 0;
+        delta[i] = t-p;
+    }
+}
+
+void logistic_x_ent_cpu(int n, float *pred, float *truth, float *delta, float *error)
+{
+    int i;
+    for(i = 0; i < n; ++i){
+        float t = truth[i];
+        float p = pred[i];
+        error[i] = -t*log(p) - (1-t)*log(1-p);
+        delta[i] = t-p;
+    }
+}
+
 void l2_cpu(int n, float *pred, float *truth, float *delta, float *error)
 {
     int i;
@@ -262,7 +302,7 @@ float dot_cpu(int N, float *X, int INCX, float *Y, int INCY)
     return dot;
 }
 
-void softmax(float *input, int n, float temp, float *output, int stride)
+void softmax(float *input, int n, float temp, int stride, float *output)
 {
     int i;
     float sum = 0;
@@ -286,24 +326,26 @@ void softmax_cpu(float *input, int n, int batch, int batch_offset, int groups, i
     int g, b;
     for(b = 0; b < batch; ++b){
         for(g = 0; g < groups; ++g){
-            softmax(input + b*batch_offset + g*group_offset, n, temp, output + b*batch_offset + g*group_offset, stride);
+            softmax(input + b*batch_offset + g*group_offset, n, temp, stride, output + b*batch_offset + g*group_offset);
         }
     }
 }
 
 void upsample_cpu(float *in, int w, int h, int c, int batch, int stride, int forward, float scale, float *out)
 {
-	int i, j, k, b;
-	for (b = 0; b < batch; ++b) {
-		for (k = 0; k < c; ++k) {
-			for (j = 0; j < h*stride; ++j) {
-				for (i = 0; i < w*stride; ++i) {
-					int in_index = b*w*h*c + k*w*h + (j / stride)*w + i / stride;
-					int out_index = b*w*h*c*stride*stride + k*w*h*stride*stride + j*w*stride + i;
-					if (forward) out[out_index] = scale*in[in_index];
-					else in[in_index] += scale*out[out_index];
-				}
-			}
-		}
-	}
+    int i, j, k, b;
+    for(b = 0; b < batch; ++b){
+        for(k = 0; k < c; ++k){
+            for(j = 0; j < h*stride; ++j){
+                for(i = 0; i < w*stride; ++i){
+                    int in_index = b*w*h*c + k*w*h + (j/stride)*w + i/stride;
+                    int out_index = b*w*h*c*stride*stride + k*w*h*stride*stride + j*w*stride + i;
+                    if(forward) out[out_index] = scale*in[in_index];
+                    else in[in_index] += scale*out[out_index];
+                }
+            }
+        }
+    }
 }
+
+

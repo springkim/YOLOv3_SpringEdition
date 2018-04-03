@@ -12,6 +12,11 @@ list *read_data_cfg(char *filename)
     int nu = 0;
     list *options = make_list();
     while((line=fgetl(file)) != 0){
+#ifdef __linux__
+		if (line[strlen(line) - 1] == '\r') {
+			line[strlen(line) - 1] = '\0';
+		}
+#endif
         ++ nu;
         strip(line);
         switch(line[0]){
@@ -30,6 +35,23 @@ list *read_data_cfg(char *filename)
     }
     fclose(file);
     return options;
+}
+
+metadata get_metadata(char *file)
+{
+    metadata m = {0};
+    list *options = read_data_cfg(file);
+
+    char *name_list = option_find_str(options, "names", 0);
+    if(!name_list) name_list = option_find_str(options, "labels", 0);
+    if(!name_list) {
+        fprintf(stderr, "No names or labels found\n");
+    } else {
+        m.names = get_labels(name_list);
+    }
+    m.classes = option_find_int(options, "classes", 2);
+    free_list(options);
+    return m;
 }
 
 int read_option(char *s, list *options)

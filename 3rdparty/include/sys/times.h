@@ -1,3 +1,4 @@
+#pragma once
 #ifndef _TIMES_H
 #define _TIMES_H
  
@@ -33,6 +34,39 @@ struct tms
 clock_t times (struct tms *__buffer);
  
 typedef long long suseconds_t ;
- 
+
+#define CLOCK_REALTIME 0
+#define BILLION                             (1E9)
+
+
+
+static BOOL g_first_time = 1;
+static LARGE_INTEGER g_counts_per_sec;
+inline int clock_gettime(int dummy, struct timespec *ct)
+{
+    LARGE_INTEGER count;
+
+    if (g_first_time)
+    {
+        g_first_time = 0;
+
+        if (0 == QueryPerformanceFrequency(&g_counts_per_sec))
+        {
+            g_counts_per_sec.QuadPart = 0;
+        }
+    }
+
+    if ((NULL == ct) || (g_counts_per_sec.QuadPart <= 0) ||
+            (0 == QueryPerformanceCounter(&count)))
+    {
+        return -1;
+    }
+
+    ct->tv_sec = count.QuadPart / g_counts_per_sec.QuadPart;
+	ct->tv_nsec = (long)(((count.QuadPart % g_counts_per_sec.QuadPart) * BILLION) / g_counts_per_sec.QuadPart);
+
+    return 0;
+}
+
 #endif
 #endif

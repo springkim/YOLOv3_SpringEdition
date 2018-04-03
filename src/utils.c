@@ -3,16 +3,55 @@
 #include <string.h>
 #include <math.h>
 #include <assert.h>
+#include <unistd.h>
 #include <float.h>
 #include <limits.h>
-#ifdef WIN32
-#include "unistd.h"
-#else
-#include <unistd.h>
-#endif
+#include <time.h>
+
 #include "utils.h"
 
-#pragma warning(disable: 4996)
+
+/*
+// old timing. is it better? who knows!!
+double get_wall_time()
+{
+    struct timeval time;
+    if (gettimeofday(&time,NULL)){
+        return 0;
+    }
+    return (double)time.tv_sec + (double)time.tv_usec * .000001;
+}
+*/
+
+double what_time_is_it_now()
+{
+    struct timespec now;
+    clock_gettime(CLOCK_REALTIME, &now);
+    return now.tv_sec + now.tv_nsec*1e-9;
+}
+
+int *read_intlist(char *gpu_list, int *ngpus, int d)
+{
+    int *gpus = 0;
+    if(gpu_list){
+        int len = (int)strlen(gpu_list);
+        *ngpus = 1;
+        int i;
+        for(i = 0; i < len; ++i){
+            if (gpu_list[i] == ',') ++*ngpus;
+        }
+        gpus = calloc(*ngpus, sizeof(int));
+        for(i = 0; i < *ngpus; ++i){
+            gpus[i] = atoi(gpu_list);
+            gpu_list = strchr(gpu_list, ',')+1;
+        }
+    } else {
+        gpus = calloc(1, sizeof(float));
+        *gpus = d;
+        *ngpus = 1;
+    }
+    return gpus;
+}
 
 int *read_map(char *filename)
 {
@@ -29,27 +68,43 @@ int *read_map(char *filename)
     return map;
 }
 
-void sorta_shuffle(void *arr, size_t n, size_t size, size_t sections)
+void sorta_shuffle(char *arr, size_t n, size_t size, size_t sections)
 {
     size_t i;
     for(i = 0; i < sections; ++i){
         size_t start = n*i/sections;
         size_t end = n*(i+1)/sections;
         size_t num = end-start;
-        shuffle((char*)arr+(start*size), num, size);
+        shuffle(arr+(start*size), num, size);
     }
 }
 
-void shuffle(void *arr, size_t n, size_t size)
+void shuffle(char *arr, size_t n, size_t size)
 {
     size_t i;
     void *swp = calloc(1, size);
     for(i = 0; i < n-1; ++i){
         size_t j = i + rand()/(RAND_MAX / (n-i)+1);
-        memcpy(swp,			(char*)arr+(j*size), size);
-        memcpy((char*)arr+(j*size), (char*)arr+(i*size), size);
-        memcpy((char*)arr+(i*size), swp,          size);
+        memcpy(swp,          arr+(j*size), size);
+        memcpy(arr+(j*size), arr+(i*size), size);
+        memcpy(arr+(i*size), swp,          size);
     }
+}
+
+int *random_index_order(int min, int max)
+{
+    int *inds = calloc(max-min, sizeof(int));
+    int i;
+    for(i = min; i < max; ++i){
+        inds[i] = i;
+    }
+    for(i = min; i < max-1; ++i){
+        int swap = inds[i];
+        int index = i + rand()%(max-i);
+        inds[i] = inds[index];
+        inds[index] = swap;
+    }
+    return inds;
 }
 
 void del_arg(int argc, char **argv, int index)
@@ -126,7 +181,6 @@ char *basecfg(char *cfgfile)
     {
         c = next+1;
     }
-	if(!next) while ((next = strchr(c, '\\'))) { c = next + 1; }
     c = copy_string(c);
     next = strchr(c, '.');
     if (next) *next = 0;
@@ -200,6 +254,21 @@ void error(const char *s)
     exit(-1);
 }
 
+unsigned char *read_file(char *filename)
+{
+    FILE *fp = fopen(filename, "rb");
+    size_t size;
+
+    fseek(fp, 0, SEEK_END); 
+    size = ftell(fp);
+    fseek(fp, 0, SEEK_SET); 
+
+    unsigned char *text = calloc(size+1, sizeof(char));
+    fread(text, 1, size, fp);
+    fclose(fp);
+    return text;
+}
+
 void malloc_error()
 {
     fprintf(stderr, "Malloc error\n");
@@ -234,7 +303,7 @@ void strip(char *s)
     size_t offset = 0;
     for(i = 0; i < len; ++i){
         char c = s[i];
-        if(c==' '||c=='\t'||c=='\n'||c =='\r') ++offset;
+        if(c==' '||c=='\t'||c=='\n') ++offset;
         else s[i-offset] = c;
     }
     s[len-offset] = '\0';
@@ -265,7 +334,7 @@ char *fgetl(FILE *fp)
     if(feof(fp)) return 0;
     size_t size = 512;
     char *line = malloc(size*sizeof(char));
-    if(!fgets(line, size, fp)){
+    if(!fgets(line, (int)size, fp)){
         free(line);
         return 0;
     }
@@ -277,17 +346,16 @@ char *fgetl(FILE *fp)
             size *= 2;
             line = realloc(line, size*sizeof(char));
             if(!line) {
-                printf("%ld\n", size);
+                printf("%zd\n", size);
                 malloc_error();
             }
         }
         size_t readsize = size-curr;
         if(readsize > INT_MAX) readsize = INT_MAX-1;
-        fgets(&line[curr], readsize, fp);
+        fgets(&line[curr], (int)readsize, fp);
         curr = strlen(line);
     }
-    if(line[curr-2] == 0x0d) line[curr-2] = 0x00;
-    if(line[curr-1] == 0x0a) line[curr-1] = 0x00;
+    if(line[curr-1] == '\n') line[curr-1] = '\0';
 
     return line;
 }
@@ -310,7 +378,7 @@ int read_all_fail(int fd, char *buffer, size_t bytes)
 {
     size_t n = 0;
     while(n < bytes){
-        int next = read(fd, buffer + n, bytes-n);
+        int next = read(fd, buffer + n, (int)(bytes-n));
         if(next <= 0) return 1;
         n += next;
     }
@@ -321,7 +389,7 @@ int write_all_fail(int fd, char *buffer, size_t bytes)
 {
     size_t n = 0;
     while(n < bytes){
-        size_t next = write(fd, buffer + n, bytes-n);
+        size_t next = write(fd, buffer + n, (int)(bytes-n));
         if(next <= 0) return 1;
         n += next;
     }
@@ -332,7 +400,7 @@ void read_all(int fd, char *buffer, size_t bytes)
 {
     size_t n = 0;
     while(n < bytes){
-        int next = read(fd, buffer + n, bytes-n);
+        int next = read(fd, buffer + n, (int)(bytes-n));
         if(next <= 0) error("read failed");
         n += next;
     }
@@ -342,7 +410,7 @@ void write_all(int fd, char *buffer, size_t bytes)
 {
     size_t n = 0;
     while(n < bytes){
-        size_t next = write(fd, buffer + n, bytes-n);
+		size_t next = write(fd, buffer + n, (int)(bytes - n));
         if(next <= 0) error("write failed");
         n += next;
     }
@@ -531,6 +599,20 @@ int sample_array(float *a, int n)
     return n-1;
 }
 
+int max_int_index(int *a, int n)
+{
+    if(n <= 0) return -1;
+    int i, max_i = 0;
+    int max = a[0];
+    for(i = 1; i < n; ++i){
+        if(a[i] > max){
+            max = a[i];
+            max_i = i;
+        }
+    }
+    return max_i;
+}
+
 int max_index(float *a, int n)
 {
     if(n <= 0) return -1;
@@ -547,11 +629,11 @@ int max_index(float *a, int n)
 
 int int_index(int *a, int val, int n)
 {
-	int i;
-	for (i = 0; i < n; ++i) {
-		if (a[i] == val) return i;
-	}
-	return -1;
+    int i;
+    for(i = 0; i < n; ++i){
+        if(a[i] == val) return i;
+    }
+    return -1;
 }
 
 int rand_int(int min, int max)
@@ -601,13 +683,13 @@ float rand_normal()
 size_t rand_size_t()
 {
     return  ((size_t)(rand()&0xff) << 56) | 
-            ((size_t)(rand()&0xff) << 48) |
-            ((size_t)(rand()&0xff) << 40) |
-            ((size_t)(rand()&0xff) << 32) |
-            ((size_t)(rand()&0xff) << 24) |
-            ((size_t)(rand()&0xff) << 16) |
-            ((size_t)(rand()&0xff) << 8) |
-            ((size_t)(rand()&0xff) << 0);
+        ((size_t)(rand()&0xff) << 48) |
+        ((size_t)(rand()&0xff) << 40) |
+        ((size_t)(rand()&0xff) << 32) |
+        ((size_t)(rand()&0xff) << 24) |
+        ((size_t)(rand()&0xff) << 16) |
+        ((size_t)(rand()&0xff) << 8) |
+        ((size_t)(rand()&0xff) << 0);
 }
 
 float rand_uniform(float min, float max)
@@ -618,13 +700,12 @@ float rand_uniform(float min, float max)
         max = swap;
     }
     return ((float)rand()/RAND_MAX * (max - min)) + min;
-	//return (random_float() * (max - min)) + min;
 }
 
 float rand_scale(float s)
 {
-    float scale = rand_uniform_strong(1, s);
-    if(random_gen()%2) return scale;
+    float scale = rand_uniform(1, s);
+    if(rand()%2) return scale;
     return 1./scale;
 }
 
@@ -640,32 +721,3 @@ float **one_hot_encode(float *a, int n, int k)
     return t;
 }
 
-unsigned int random_gen()
-{
-	unsigned int rnd = 0;
-#ifdef WIN32
-	rand_s(&rnd);
-#else
-	rnd = rand();
-#endif
-	return rnd;
-}
-
-float random_float()
-{
-#ifdef WIN32
-	return ((float)random_gen() / (float)UINT_MAX);
-#else
-	return ((float)random_gen() / (float)RAND_MAX);
-#endif
-}
-
-float rand_uniform_strong(float min, float max)
-{
-	if (max < min) {
-		float swap = min;
-		min = max;
-		max = swap;
-	}
-	return (random_float() * (max - min)) + min;
-}

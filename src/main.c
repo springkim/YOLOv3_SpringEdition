@@ -1,6 +1,153 @@
-
 #include"yolo_v3.h"
-extern void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filename, float thresh, float hier_thresh, int dont_show);
+void train_detector3(char *datacfg, char *cfgfile, char *weightfile, int *gpus, int ngpus, int clear, char* base) {
+	list *options = read_data_cfg(datacfg);
+	char *train_images = option_find_str(options, "train", "data/train.list");
+	char *backup_directory = option_find_str(options, "backup", "/backup/");
+
+	srand(time(0));
+	//char *base = basecfg(cfgfile);
+	printf("%s\n", base);
+	float avg_loss = -1;
+	network **nets = calloc(ngpus, sizeof(network));
+
+	srand(time(0));
+	int seed = rand();
+	int i;
+	for (i = 0; i < ngpus; ++i) {
+		srand(seed);
+#ifdef GPU
+		cuda_set_device(gpus[i]);
+#endif
+		nets[i] = load_network(cfgfile, weightfile, clear);
+		nets[i]->learning_rate *= ngpus;
+	}
+	srand(time(0));
+	network *net = nets[0];
+
+	int imgs = net->batch * net->subdivisions * ngpus;
+	printf("Learning Rate: %g, Momentum: %g, Decay: %g\n", net->learning_rate, net->momentum, net->decay);
+	data train, buffer;
+
+	layer l = net->layers[net->n - 1];
+
+	int classes = l.classes;
+	float jitter = l.jitter;
+
+	list *plist = get_paths(train_images);
+	//int N = plist->size;
+	char **paths = (char **)list_to_array(plist);
+
+	load_args args = get_base_args(net);
+	args.coords = l.coords;
+	args.paths = paths;
+	args.n = imgs;
+	args.m = plist->size;
+	args.classes = classes;
+	args.jitter = jitter;
+	args.num_boxes = l.max_boxes;
+	args.d = &buffer;
+	args.type = DETECTION_DATA;
+	//args.type = INSTANCE_DATA;
+	args.threads = 64;
+
+	pthread_t load_thread = load_data(args);
+	double time;
+	int count = 0;
+	//while(i*imgs < N*120){
+	while (get_current_batch(net) < net->max_batches) {
+		if (l.random && count++ % 10 == 0) {
+			printf("Resizing\n");
+			int dim = (rand() % 10 + 10) * 32;
+			if (get_current_batch(net) + 200 > net->max_batches) dim = 608;
+			//int dim = (rand() % 4 + 16) * 32;
+			printf("%d\n", dim);
+			args.w = dim;
+			args.h = dim;
+
+			pthread_join(load_thread, 0);
+			train = buffer;
+			free_data(train);
+			load_thread = load_data(args);
+
+#pragma omp parallel for
+			for (i = 0; i < ngpus; ++i) {
+				resize_network(nets[i], dim, dim);
+			}
+			net = nets[0];
+		}
+		time = what_time_is_it_now();
+		pthread_join(load_thread, 0);
+		train = buffer;
+		load_thread = load_data(args);
+
+		/*
+		int k;
+		for(k = 0; k < l.max_boxes; ++k){
+		box b = float_to_box(train.y.vals[10] + 1 + k*5);
+		if(!b.x) break;
+		printf("loaded: %f %f %f %f\n", b.x, b.y, b.w, b.h);
+		}
+		*/
+		/*
+		int zz;
+		for(zz = 0; zz < train.X.cols; ++zz){
+		image im = float_to_image(net->w, net->h, 3, train.X.vals[zz]);
+		int k;
+		for(k = 0; k < l.max_boxes; ++k){
+		box b = float_to_box(train.y.vals[zz] + k*5, 1);
+		printf("%f %f %f %f\n", b.x, b.y, b.w, b.h);
+		draw_bbox(im, b, 1, 1,0,0);
+		}
+		show_image(im, "truth11");
+		cvWaitKey(0);
+		save_image(im, "truth11");
+		}
+		*/
+
+		printf("Loaded: %lf seconds\n", what_time_is_it_now() - time);
+
+		time = what_time_is_it_now();
+		float loss = 0;
+#ifdef GPU
+		if (ngpus == 1) {
+			printf("%f\n", train.X.vals[0][0]);
+			loss = train_network(net, train);
+		} else {
+			loss = train_networks(nets, ngpus, train, 4);
+		}
+#else
+		loss = train_network(net, train);
+#endif
+		if (avg_loss < 0) avg_loss = loss;
+		avg_loss = avg_loss*.9 + loss*.1;
+
+		i = (int)get_current_batch(net);
+		printf("%zd: %f, %f avg, %f rate, %lf seconds, %d images\n", get_current_batch(net), loss, avg_loss, get_current_rate(net), what_time_is_it_now() - time, i*imgs);
+		if (i % 100 == 0) {
+#ifdef GPU
+			if (ngpus != 1) sync_nets(nets, ngpus, 0);
+#endif
+			char buff[256];
+			sprintf(buff, "%s/%s.backup", backup_directory, base);
+			save_weights(net, buff);
+		}
+		if (i % 1000 == 0 || (i < 1000 && i % 100 == 0)) {
+#ifdef GPU
+			if (ngpus != 1) sync_nets(nets, ngpus, 0);
+#endif
+			char buff[256];
+			sprintf(buff, "%s/%s_%d.weights", backup_directory, base, i);
+			save_weights(net, buff);
+		}
+		free_data(train);
+	}
+#ifdef GPU
+	if (ngpus != 1) sync_nets(nets, ngpus, 0);
+#endif
+	char buff[256];
+	sprintf(buff, "%s/%s_final.weights", backup_directory, base);
+	save_weights(net, buff);
+}
 char* GetCFGElement(char* cfg, char* name, char* buffer) {
 	FILE* fp = fopen(cfg, "r");
 	if (fp == NULL) {
@@ -8,7 +155,6 @@ char* GetCFGElement(char* cfg, char* name, char* buffer) {
 		return buffer;
 	}
 	char line[256 + 1];
-	char temp[256 + 1];
 	while (!feof(fp)) {
 		fgets(line, 256, fp);
 		if (strncmp(name, line, strlen(name)) == 0) {
@@ -49,12 +195,12 @@ char* ParseCfg(char* cfg, char* buffer) {
 }
 /*
 *	@YoloTrain
-*	@param1 : ê¸°ì¤€ ë””ë ‰í„°ë¦¬
-*	@param2: dataíŒŒì¼ ì´ë¦„(íŒŒì¼ë§Œ ëª…ì‹œ)
-*	@param3 : cfgíŒŒì¼ ì´ë¦„(íŒŒì¼ë§Œ ëª…ì‹œ)
+*	@param1 : ±âÁØ µð·ºÅÍ¸®
+*	@param2: dataÆÄÀÏ ÀÌ¸§(ÆÄÀÏ¸¸ ¸í½Ã)
+*	@param3 : cfgÆÄÀÏ ÀÌ¸§(ÆÄÀÏ¸¸ ¸í½Ã)
 */
 void YoloTrain(char* _base_dir, char* _datafile, char* _cfgfile) {
-	//ëª¨ë“  íŒŒì¼ë“¤ì€ base_dirì„ ê¸°ì¤€ìœ¼ë¡œ ì°¾ìŠµë‹ˆë‹¤.(ìƒëŒ€ ê²½ë¡œì¼ê²½ìš° ì ˆëŒ€ê²½ë¡œë¡œ ë°”ê¿”ì¤ë‹ˆë‹¤)
+	//¸ðµç ÆÄÀÏµéÀº base_dirÀ» ±âÁØÀ¸·Î Ã£½À´Ï´Ù.(»ó´ë °æ·ÎÀÏ°æ¿ì Àý´ë°æ·Î·Î ¹Ù²ãÁÝ´Ï´Ù)
 	char rpath[MAX_PATH];
 	strcpy(rpath, _base_dir);
 	char apath[MAX_PATH];
@@ -64,7 +210,7 @@ void YoloTrain(char* _base_dir, char* _datafile, char* _cfgfile) {
 	realpath(rpath,apath);
 #endif
 
-	//í˜„ìž¬ ì‹¤í–‰íŒŒì¼ì˜ ê²½ë¡œë¥¼ ì €ìž¥í•©ë‹ˆë‹¤.
+	//ÇöÀç ½ÇÇàÆÄÀÏÀÇ °æ·Î¸¦ ÀúÀåÇÕ´Ï´Ù.
 	char curr_dir[MAX_PATH];
 	chdir(curr_dir);
 #if defined(_WIN32) || defined(_WIN64)
@@ -74,7 +220,7 @@ void YoloTrain(char* _base_dir, char* _datafile, char* _cfgfile) {
 	getcwd(curr_dir,MAX_PATH);
 	chdir(curr_dir);
 #endif
-	//ì½˜ì†”ì‘ìš©í”„ë¡œê·¸ëž¨ì´ ì•„ë‹ˆê±°ë‚˜, dllí”„ë¡œì íŠ¸ì¼ê²½ìš° ì½˜ì†”ì°½ì„ ìƒì„±í•©ë‹ˆë‹¤.
+	//ÄÜ¼ÖÀÀ¿ëÇÁ·Î±×·¥ÀÌ ¾Æ´Ï°Å³ª, dllÇÁ·ÎÁ§Æ®ÀÏ°æ¿ì ÄÜ¼ÖÃ¢À» »ý¼ºÇÕ´Ï´Ù.
 #if defined(_WIN32) || defined(_WIN64)
 	#if !defined(_CONSOLE) || defined(_WINDLL)
 	AllocConsole();
@@ -127,7 +273,7 @@ void YoloTrain(char* _base_dir, char* _datafile, char* _cfgfile) {
 		i -= 100;
 	}
 	puts("Train start!!");
-	train_detector(
+	train_detector3(
 			_datafile
 			, _cfgfile
 			, backup

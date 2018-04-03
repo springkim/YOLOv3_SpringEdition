@@ -1,11 +1,8 @@
 #ifndef ACTIVATIONS_H
 #define ACTIVATIONS_H
+#include "darknet.h"
 #include "cuda.h"
 #include "math.h"
-
-typedef enum{
-    LOGISTIC, RELU, RELIE, LINEAR, RAMP, TANH, PLSE, LEAKY, ELU, LOGGY, STAIR, HARDTAN, LHTAN
-}ACTIVATION;
 
 ACTIVATION get_activation(char *s);
 
@@ -15,8 +12,8 @@ float gradient(float x, ACTIVATION a);
 void gradient_array(const float *x, const int n, const ACTIVATION a, float *delta);
 void activate_array(float *x, const int n, const ACTIVATION a);
 #ifdef GPU
-void activate_array_ongpu(float *x, int n, ACTIVATION a);
-void gradient_array_ongpu(float *x, int n, ACTIVATION a, float *delta);
+void activate_array_gpu(float *x, int n, ACTIVATION a);
+void gradient_array_gpu(float *x, int n, ACTIVATION a, float *delta);
 #endif
 
 static inline float stair_activate(float x)
@@ -56,7 +53,7 @@ static inline float lhtan_activate(float x)
 static inline float lhtan_gradient(float x)
 {
     if(x > 0 && x < 1) return 1;
-    return .001;
+    return .001F;
 }
 
 static inline float hardtan_gradient(float x)

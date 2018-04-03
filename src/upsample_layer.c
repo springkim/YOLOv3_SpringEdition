@@ -65,7 +65,7 @@ void resize_upsample_layer(layer *l, int w, int h)
     
 }
 
-void forward_upsample_layer(const layer l, network_state net)
+void forward_upsample_layer(const layer l, network net)
 {
     fill_cpu(l.outputs*l.batch, 0, l.output, 1);
     if(l.reverse){
@@ -75,32 +75,32 @@ void forward_upsample_layer(const layer l, network_state net)
     }
 }
 
-void backward_upsample_layer(const layer l, network_state state)
+void backward_upsample_layer(const layer l, network net)
 {
     if(l.reverse){
-        upsample_cpu(l.delta, l.out_w, l.out_h, l.c, l.batch, l.stride, 1, l.scale, state.delta);
+        upsample_cpu(l.delta, l.out_w, l.out_h, l.c, l.batch, l.stride, 1, l.scale, net.delta);
     }else{
-        upsample_cpu(state.delta, l.w, l.h, l.c, l.batch, l.stride, 0, l.scale, l.delta);
+        upsample_cpu(net.delta, l.w, l.h, l.c, l.batch, l.stride, 0, l.scale, l.delta);
     }
 }
 
 #ifdef GPU
-void forward_upsample_layer_gpu(const layer l, network_state state)
+void forward_upsample_layer_gpu(const layer l, network net)
 {
-    fill_ongpu(l.outputs*l.batch, 0, l.output_gpu, 1);
+    fill_gpu(l.outputs*l.batch, 0, l.output_gpu, 1);
     if(l.reverse){
-        upsample_gpu(l.output_gpu, l.out_w, l.out_h, l.c, l.batch, l.stride, 0, l.scale, state.input);
+        upsample_gpu(l.output_gpu, l.out_w, l.out_h, l.c, l.batch, l.stride, 0, l.scale, net.input_gpu);
     }else{
-        upsample_gpu(state.input, l.w, l.h, l.c, l.batch, l.stride, 1, l.scale, l.output_gpu);
+        upsample_gpu(net.input_gpu, l.w, l.h, l.c, l.batch, l.stride, 1, l.scale, l.output_gpu);
     }
 }
 
-void backward_upsample_layer_gpu(const layer l, network_state state)
+void backward_upsample_layer_gpu(const layer l, network net)
 {
     if(l.reverse){
-        upsample_gpu(l.delta_gpu, l.out_w, l.out_h, l.c, l.batch, l.stride, 1, l.scale, state.delta);
+        upsample_gpu(l.delta_gpu, l.out_w, l.out_h, l.c, l.batch, l.stride, 1, l.scale, net.delta_gpu);
     }else{
-        upsample_gpu(state.delta, l.w, l.h, l.c, l.batch, l.stride, 0, l.scale, l.delta_gpu);
+        upsample_gpu(net.delta_gpu, l.w, l.h, l.c, l.batch, l.stride, 0, l.scale, l.delta_gpu);
     }
 }
 #endif

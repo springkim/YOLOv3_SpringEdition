@@ -26,7 +26,6 @@
 #pragma comment(lib,"vfw32.lib")
 #pragma comment(lib, "comctl32.lib" )
 #pragma comment(lib, "Shlwapi.lib")
-#define MAX_PATH _MAX_PATH
 #define DLL_MACRO	__declspec(dllexport)
 #else
 #include<dirent.h>		//_chdir

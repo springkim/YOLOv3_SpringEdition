@@ -1,7 +1,19 @@
 #pragma once
+#pragma warning(disable:4244)
+#pragma warning(disable:4996)
+#ifdef _WIN32
+#include<stdlib.h>
+inline unsigned int rand_ss(){
+	unsigned int r;
+	rand_s(&r);
+	return r;
+}
+#define rand() rand_ss()
+#endif
 #include <stdio.h>
 #ifdef _WINDLL
 #ifdef WIN32
+
 #define fprintf(...)	__noop
 #define printf(...)	__noop
 #else
@@ -9,6 +21,7 @@
 #define printf(...)	((void)0)
 #endif
 #endif
+
 
 #ifndef DARKNET_API
 #define DARKNET_API
@@ -225,7 +238,7 @@ struct layer{
     int   * input_layers;
     int   * input_sizes;
     int   * map;
-    float * _rand;
+    float * rand_;
     float * cost;
     float * state;
     float * prev_state;
@@ -270,7 +283,7 @@ struct layer{
 
     float * m;
     float * v;
-
+    
     float * bias_m;
     float * bias_v;
     float * scale_m;
@@ -295,7 +308,7 @@ struct layer{
     float *g_cpu;
     float *o_cpu;
     float *c_cpu;
-    float *dc_cpu;
+    float *dc_cpu; 
 
     float * binary_input;
 
@@ -322,7 +335,7 @@ struct layer{
 
     struct layer *input_h_layer;
     struct layer *state_h_layer;
-
+	
     struct layer *wz;
     struct layer *uz;
     struct layer *wr;
@@ -362,7 +375,7 @@ struct layer{
     float *g_gpu;
     float *o_gpu;
     float *c_gpu;
-    float *dc_gpu;
+    float *dc_gpu; 
 
     float *m_gpu;
     float *v_gpu;
@@ -441,7 +454,7 @@ typedef enum {
 typedef struct network{
     int n;
     int batch;
-    int *seen;
+    size_t *seen;
     int *t;
     float epoch;
     int subdivisions;

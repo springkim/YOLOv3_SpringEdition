@@ -64,6 +64,14 @@ void Release();
 ```
 Release loaded network.
 
+## Technical issue
+
+Original YOLOv3(darknet) is linux version.
+And **[AlexeyAB](https://github.com/AlexeyAB/darknet)** already made YOLOv3 Windows version.
+But, his detection method is too slow on Windows. I don't know why exactly. Maybe it has bottleneck.
+So, I converted **[darknet](https://github.com/pjreddie/darknet)**(YOLOv3 only) again.
+
+Incompatible with yolo v2(darknet19, densenet201, resnet50). It works only on darknet53.
 
 ## Software requirement
 
