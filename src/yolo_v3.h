@@ -11,7 +11,6 @@
 #include "option_list.h"
 #include "stb_image.h"
 
-#include<opencv/cv.h>
 #include<cuda.h>
 #include<ctype.h>
 #include <cuda_runtime.h>
