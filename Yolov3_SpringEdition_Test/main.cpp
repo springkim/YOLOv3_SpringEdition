@@ -22,7 +22,7 @@ void Yolo3Test() {
 		auto boxes = detector.Detect(img, 0.5F);
 		double t = (clock() - start) / CLOCKS_PER_SEC;
 		std::cout << "FPS : " << 1.0 / t << "\t" << t << std::endl;
-		//continue;
+		continue;
 		for (auto&box : boxes) {
 			cv::putText(img, detector.Names(box.m_class), box.tl(), cv::FONT_HERSHEY_SIMPLEX, 1.0, colors[box.m_class], 2);
 			cv::rectangle(img, box, colors[box.m_class], 2);
