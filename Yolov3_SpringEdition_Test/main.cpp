@@ -23,6 +23,7 @@ void Yolo3Test() {
 		t_end = std::chrono::system_clock::now();
 		diff = t_end - t_beg;
 		std::cout << "FPS : " << 1.0 / diff.count() << "\t" << diff.count() << std::endl;
+		continue;
 		for (auto&box : boxes) {
 			cv::putText(img, detector.Names(box.m_class), box.tl(), cv::FONT_HERSHEY_SIMPLEX, 1.0, colors[box.m_class], 2);
 			cv::rectangle(img, box, colors[box.m_class], 2);
