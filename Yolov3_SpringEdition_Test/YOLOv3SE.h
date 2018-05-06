@@ -18,6 +18,7 @@
 #include<opencv2/opencv.hpp>
 
 #ifdef _WIN32
+#define NOMINMAX
 #include<Windows.h>
 #include <Shlwapi.h>
 #pragma comment(lib, "Shlwapi.lib")

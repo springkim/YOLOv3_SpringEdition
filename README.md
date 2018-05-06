@@ -35,6 +35,7 @@ And YOLOv3SE_Train.exe is automatically choosing multi-gpu training. and select 
 ### 2. Setup for detect
 
 Just include **YOLOv3SE.h** and use it. See  `YOLOv3_SpringEdition_Test/`.
+You need only **YOLOv3SE.h**, **libYOLOv3SE.dll** and **cudnn64_5.dll** for detect.
 
 ##### Reference
 
@@ -71,12 +72,16 @@ And **[AlexeyAB](https://github.com/AlexeyAB/darknet)** already made YOLOv3 Wind
 But, his detection method is too slow on Windows. I don't know why exactly. Maybe it has bottleneck.
 So, I converted **[darknet](https://github.com/pjreddie/darknet)**(YOLOv3 only) again.
 
-Incompatible with yolo v2(darknet19, densenet201, resnet50). It works only on darknet53.
+## change log
 
+**build_windows.bat** and **build_linux.sh** will download automatically correct version of cudnn. and build as cmake.
+```
+1080ti + CUDA8.0 + cudnn7.1 = 18FPS
+```
 ## Software requirement
 
 * CMake
-* CUDA 8.0(Maybe it works on CUDA9)
+* CUDA 8.0 or 9.0 or 9.1
 * OpenCV
 * Visual Studio
 
