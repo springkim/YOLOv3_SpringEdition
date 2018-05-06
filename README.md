@@ -76,7 +76,7 @@ So, I converted **[darknet](https://github.com/pjreddie/darknet)**(YOLOv3 only) 
 
 **build_windows.bat** and **build_linux.sh** will download automatically correct version of cudnn. and build as cmake.
 ```
-1080ti + CUDA8.0 + cudnn7.1 = 18FPS
+1080ti + CUDA8.0 + cudnn7.1 = 19FPS
 1080 + CUDA9.0 + cudnn7.1 = 27FPS
 ```
 ## Software requirement
