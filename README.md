@@ -73,7 +73,8 @@ change log
 **build_windows.bat** and **build_linux.sh** will download automatically correct version of cudnn. and build as cmake.
 
 ```
-Windows + 1080ti + CUDA8.0 + cudnn7.1 = 19FPS
+Windows + 1080ti + CUDA8.0 + cudnn7.1 = 36FPS
+Windows + 1080ti + CUDA9.0 + cudnn7.1 = 36FPS
 Windows + 1080   + CUDA9.0 + cudnn7.1 = 27FPS
 Ubuntu  + 1080   + CUDA8.0 + cudnn7.1 = 30FPS
 Ubuntu  + 1080   + CUDA9.0 + cudnn7.1 = 30FPS
