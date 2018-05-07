@@ -75,8 +75,8 @@ change log
 ```
 Windows + 1080ti + CUDA8.0 + cudnn7.1 = 19FPS
 Windows + 1080   + CUDA9.0 + cudnn7.1 = 27FPS
-Ubuntu  + 1080   + CUDA8.0 + cudnn7.1 = 20FPS
-Ubuntu  + 1080   + CUDA9.0 + cudnn7.1 = 22FPS
+Ubuntu  + 1080   + CUDA8.0 + cudnn7.1 = 30FPS
+Ubuntu  + 1080   + CUDA9.0 + cudnn7.1 = 30FPS
 ```
 
 Software requirement
