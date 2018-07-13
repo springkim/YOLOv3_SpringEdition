@@ -68,11 +68,13 @@ private:
 	using YoloTrainType = void(*)(char* _base_dir, char* _datafile, char* _cfgfile);
 	using YoloDetectFromFileType = int(*)(char* img_path, int* _net, float threshold, float* result, int result_sz);
 	using YoloDetectFromImageType = int(*)(float* data, int w, int h, int c, int* _net, float threshold, float* result, int result_sz);
+	using YoloReleaseType = void(*)(int* net);
 private:
 	YoloLoadType YoloLoad = nullptr;
 	YoloTrainType YoloTrain = nullptr;
 	YoloDetectFromFileType YoloDetectFromFile = nullptr;
 	YoloDetectFromImageType YoloDetectFromImage = nullptr;
+	YoloReleaseType YoloRelease=nullptr;
 protected:
 	int* m_network = nullptr;
 #ifdef _WIN32
@@ -113,6 +115,7 @@ public:
 	}
 	void Release() {
 		if (this->m_hmod != nullptr) {
+			YoloRelease(m_network);
 #ifdef _WIN32
 			FreeLibrary(this->m_hmod);
 #else
@@ -217,13 +220,14 @@ public:
 		std::string dll = "libYOLOv3SE.dll";
 		m_hmod = LoadLibraryA(dll.c_str());
 		if (m_hmod == nullptr) {
-			::MessageBoxA(NULL, "libYOLOv3SE.dll not found. or can't load dependency dll(cudnn64_5)", "Fatal", MB_OK);
+			::MessageBoxA(NULL, "libYOLOv3SE.dll not found. or can't load dependency dll(cudnn64_7)", "Fatal", MB_OK);
 			exit(1);
 		}
 		YoloLoad = (YoloLoadType)GetProcAddress(m_hmod, "YoloLoad");
 		YoloTrain = (YoloTrainType)GetProcAddress(m_hmod, "YoloTrain");
 		YoloDetectFromFile = (YoloDetectFromFileType)GetProcAddress(m_hmod, "YoloDetectFromFile");
 		YoloDetectFromImage = (YoloDetectFromImageType)GetProcAddress(m_hmod, "YoloDetectFromImage");
+		YoloRelease = (YoloReleaseType)GetProcAddress(m_hmod, "YoloRelease");
 #else
 		m_hmod = dlopen("libYOLOv3SE.so",RTLD_LAZY);
 		if (m_hmod == nullptr) {
@@ -235,6 +239,7 @@ public:
 		YoloTrain = (YoloTrainType)dlsym(m_hmod, "YoloTrain");
 		YoloDetectFromFile = (YoloDetectFromFileType)dlsym(m_hmod, "YoloDetectFromFile");
 		YoloDetectFromImage = (YoloDetectFromImageType)dlsym(m_hmod, "YoloDetectFromImage");
+		YoloRelease = (YoloReleaseType)dlsym(m_hmod, "YoloRelease");
 #endif
 	}
 	~YOLOv3() {

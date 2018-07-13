@@ -36,9 +36,9 @@ void Yolo3Test() {
 		}
 	}
 	cv::destroyAllWindows();
+	detector.Release();
 }
 int main() {
 	Yolo3Test();
-
 	return 0;
 }

@@ -148,3 +148,6 @@ DLL_MACRO int YoloDetectFromImage(float* data,int w,int h,int c, int* _net, floa
 //
 //	network_visualization(*net, sized.data);
 //}
+DLL_MACRO void YoloRelease(int* net) {
+	free_network((network*)net);
+}
