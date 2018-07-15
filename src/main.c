@@ -99,6 +99,11 @@ void train_detector3(char *datacfg, char *cfgfile, char *weightfile, int *gpus, 
 
 		i = (int)get_current_batch(net);
 		printf("%zd: %f, %f avg, %f rate, %lf seconds, %d images\n", get_current_batch(net), loss, avg_loss, get_current_rate(net), what_time_is_it_now() - time, i*imgs);
+		
+		FILE* fp_loss = fopen("loss.txt", "a");
+		fprintf(fp_loss, "%f\t%f\n", loss, avg_loss);
+		fclose(fp_loss);
+
 		if (i % 100 == 0) {
 #ifdef GPU
 			if (ngpus != 1) sync_nets(nets, ngpus, 0);

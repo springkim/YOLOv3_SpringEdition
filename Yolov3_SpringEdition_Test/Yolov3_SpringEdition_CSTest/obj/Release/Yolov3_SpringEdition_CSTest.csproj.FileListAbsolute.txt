@@ -1,0 +1,9 @@
+C:\Users\sprin\Documents\Git\YOLOv3_SpringEdition\Yolov3_SpringEdition_Test\Yolov3_SpringEdition_CSTest.exe.config
+C:\Users\sprin\Documents\Git\YOLOv3_SpringEdition\Yolov3_SpringEdition_Test\Yolov3_SpringEdition_CSTest\obj\Release\Yolov3_SpringEdition_CSTest.csprojResolveAssemblyReference.cache
+C:\Users\sprin\Documents\Git\YOLOv3_SpringEdition\Yolov3_SpringEdition_Test\Yolov3_SpringEdition_CSTest\obj\Release\YOLOv3_CS_Example.Form1.resources
+C:\Users\sprin\Documents\Git\YOLOv3_SpringEdition\Yolov3_SpringEdition_Test\Yolov3_SpringEdition_CSTest\obj\Release\Yolov3_SpringEdition_CSTest.Properties.Resources.resources
+C:\Users\sprin\Documents\Git\YOLOv3_SpringEdition\Yolov3_SpringEdition_Test\Yolov3_SpringEdition_CSTest\obj\Release\Yolov3_SpringEdition_CSTest.csproj.GenerateResource.Cache
+C:\Users\sprin\Documents\Git\YOLOv3_SpringEdition\Yolov3_SpringEdition_Test\Yolov3_SpringEdition_CSTest\obj\Release\Yolov3_SpringEdition_CSTest.exe
+C:\Users\sprin\Documents\Git\YOLOv3_SpringEdition\Yolov3_SpringEdition_Test\Yolov3_SpringEdition_CSTest\obj\Release\Yolov3_SpringEdition_CSTest.pdb
+C:\Users\sprin\Documents\Git\YOLOv3_SpringEdition\Yolov3_SpringEdition_Test\Yolov3_SpringEdition_CSTest.exe
+C:\Users\sprin\Documents\Git\YOLOv3_SpringEdition\Yolov3_SpringEdition_Test\Yolov3_SpringEdition_CSTest.pdb
