@@ -102,6 +102,7 @@ void train_detector3(char *datacfg, char *cfgfile, char *weightfile, int *gpus, 
 		
 		FILE* fp_loss = fopen("loss.txt", "a");
 		fprintf(fp_loss, "%f\t%f\n", loss, avg_loss);
+		fflush(fp_loss);
 		fclose(fp_loss);
 
 		if (i % 100 == 0) {
