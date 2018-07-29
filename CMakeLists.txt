@@ -157,7 +157,7 @@ endif(UNIX)
 if(MSVC)
 	add_definitions(-D_CRT_RAND_S)
 	include_directories(${PROJECT_SOURCE_DIR}/3rdparty/include)
-	set(PTHREAD_SRC ${PROJECT_SOURCE_DIR}/3rdparty/src/pthread/pthread.c)
+	set(PTHREAD_SRC ${PROJECT_SOURCE_DIR}/3rdparty/src/pthread.c)
 	cuda_add_library(libYOLOv3SE SHARED ${SOURCE_FILES} ${PTHREAD_SRC} src/yolo_v3.c)       #Make dll file
 	cuda_add_executable(YOLOv3SE_Train ${SOURCE_FILES} ${PTHREAD_SRC} src/main.c)   		#Make train executable
 	target_link_libraries(YOLOv3SE_Train ${PROJECT_SOURCE_DIR}/3rdparty/lib/cudnn.lib cuda)

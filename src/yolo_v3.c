@@ -63,6 +63,8 @@ DLL_MACRO int* YoloLoad(char* cfgfile, char* weightsfile) {
 	network* net = NULL;//(network*)malloc(sizeof(network));
 	//memset(net, 0, sizeof(network));
 	net = parse_network_cfg(cfgfile);
+	net->batch = 1;
+	net->subdivisions = 1;
 	load_weights(net, weightsfile);
 	set_batch_network(net, 1);
 	srand(920217);

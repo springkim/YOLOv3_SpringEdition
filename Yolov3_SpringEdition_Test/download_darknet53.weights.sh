@@ -1,1 +1,1 @@
-curl -L https://www.dropbox.com/s/4x1m1lugp6lkctm/yolov3.weights?dl=1 -o darknet53.weights
+curl -L https://github.com/springkim/YOLOv3_SpringEdition/releases/download/image/yolov3.weights -o darknet53.weights

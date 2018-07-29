@@ -1078,11 +1078,14 @@ void *load_threads(void *ptr)
         args.d = buffers + i;
         args.n = (i+1) * total/args.threads - i * total/args.threads;
         threads[i] = load_data_in_thread(args);
+		//load_thread((void*)&args);
     }
     for(i = 0; i < args.threads; ++i){
         pthread_join(threads[i], 0);
     }
+	
     *out = concat_datas(buffers, args.threads);
+	
     out->shallow = 0;
     for(i = 0; i < args.threads; ++i){
         buffers[i].shallow = 1;

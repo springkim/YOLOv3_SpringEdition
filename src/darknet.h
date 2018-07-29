@@ -28,7 +28,7 @@ inline unsigned int rand_ss(){
 #ifndef DARKNET_API
 #define DARKNET_API
 #include <stdlib.h>
-
+#include<time.h>
 #include <string.h>
 #include <pthread.h>
 

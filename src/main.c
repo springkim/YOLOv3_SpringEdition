@@ -1,4 +1,5 @@
 #include"yolo_v3.h"
+#include<errno.h>
 void train_detector3(char *datacfg, char *cfgfile, char *weightfile, int *gpus, int ngpus, int clear, char* base) {
 	list *options = read_data_cfg(datacfg);
 	char *train_images = option_find_str(options, "train", "data/train.list");
@@ -9,7 +10,7 @@ void train_detector3(char *datacfg, char *cfgfile, char *weightfile, int *gpus, 
 	printf("%s\n", base);
 	float avg_loss = -1;
 	network **nets = calloc(ngpus, sizeof(network));
-
+	
 	srand(time(0));
 	int seed = rand();
 	int i;
@@ -53,7 +54,6 @@ void train_detector3(char *datacfg, char *cfgfile, char *weightfile, int *gpus, 
 	pthread_t load_thread = load_data(args);
 	double time;
 	int count = 0;
-	//while(i*imgs < N*120){
 	while (get_current_batch(net) < net->max_batches) {
 		if (l.random && count++ % 10 == 0) {
 			printf("Resizing\n");
@@ -101,18 +101,10 @@ void train_detector3(char *datacfg, char *cfgfile, char *weightfile, int *gpus, 
 		printf("%zd: %f, %f avg, %f rate, %lf seconds, %d images\n", get_current_batch(net), loss, avg_loss, get_current_rate(net), what_time_is_it_now() - time, i*imgs);
 		
 		FILE* fp_loss = fopen("loss.txt", "a");
-		fprintf(fp_loss, "%f\t%f\n", loss, avg_loss);
+		fprintf(fp_loss, "%.4f\t%.4f\n", loss, avg_loss);
 		fflush(fp_loss);
 		fclose(fp_loss);
 
-		if (i % 100 == 0) {
-#ifdef GPU
-			if (ngpus != 1) sync_nets(nets, ngpus, 0);
-#endif
-			char buff[256];
-			sprintf(buff, "%s/%s.backup", backup_directory, base);
-			save_weights(net, buff);
-		}
 		if (i % 1000 == 0 || (i < 1000 && i % 100 == 0)) {
 #ifdef GPU
 			if (ngpus != 1) sync_nets(nets, ngpus, 0);
@@ -152,6 +144,7 @@ char* GetCFGElement(char* cfg, char* name, char* buffer) {
 char* ParseCfg(char* cfg, char* buffer) {
 	FILE* fp = fopen(cfg, "r");
 	if (fp == NULL) {
+		puts(strerror(errno));
 		fprintf(stderr, "cfg error\n");
 		return buffer;
 	}
@@ -194,10 +187,14 @@ void YoloTrain(char* _base_dir, char* _datafile, char* _cfgfile) {
 
 	//현재 실행파일의 경로를 저장합니다.
 	char curr_dir[MAX_PATH];
-	chdir(curr_dir);
+	//chdir(curr_dir);
 #if defined(_WIN32) || defined(_WIN64)
 	GetCurrentDirectoryA(MAX_PATH, curr_dir);
-	_chdir(apath);
+	puts(curr_dir);
+	//chdir(apath);
+	SetCurrentDirectoryA(apath);
+	char tmpdir[512];
+	GetCurrentDirectoryA(MAX_PATH, tmpdir);
 #else
 	getcwd(curr_dir,MAX_PATH);
 	chdir(curr_dir);

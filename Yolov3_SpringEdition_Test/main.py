@@ -10,7 +10,6 @@ else:
     dlname+=".so"
 yolov3_dl=ctypes.cdll.LoadLibrary(os.path.abspath(dlname))
 net=yolov3_dl.YoloLoad("darknet53_coco.cfg","darknet53.weights")
-
 files = [f for f in os.listdir('voc2007valid') if re.match(r'[0-9]+.*\.jpg', f)]
 files.sort()
 
