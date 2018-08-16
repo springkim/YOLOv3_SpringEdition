@@ -67,7 +67,8 @@ DLL_MACRO int* YoloLoad(char* cfgfile, char* weightsfile) {
 	net->subdivisions = 1;
 	load_weights(net, weightsfile);
 	set_batch_network(net, 1);
-	srand(920217);
+	srand(921126);
+	
 	return (int*)net;
 }
 /*
@@ -107,6 +108,26 @@ DLL_MACRO int YoloDetectFromImage(float* data,int w,int h,int c, int* _net, floa
 	im.h=h;
 	im.c=c;
 	return YoloDetect(im, _net, threshold, result, result_sz);
+}
+DLL_MACRO int YoloDetectFromPyImage(float* data, int W, int H, int C, int* _net, float threshold, float* result, int result_sz) {
+
+	float* fdata = (float*)calloc(H*W*C, sizeof(float));
+	for (int h = 0; h < H; ++h) {
+		for (int c = 0; c < C; ++c) {
+			for (int w = 0; w < W; ++w) {
+				fdata[(abs(C - 1 - c))*W*H + h*W + w] = data[h*W*C + w*C + c] / 255.0F;
+			}
+		}
+	}
+
+	image im;
+	im.data = fdata;
+	im.w = W;
+	im.h = H;
+	im.c = C;
+	int r=YoloDetect(im, _net, threshold, result, result_sz);
+	free(fdata);
+	return r;
 }
 //__declspec(dllexport) float YoloLoss(char* cfg, char* weights, char* image_list_file) {
 //	network* pnet= (network*)YoloLoad(cfg, weights);

@@ -9,7 +9,10 @@ if platform.system()=='Windows':
 else:
     dlname+=".so"
 yolov3_dl=ctypes.cdll.LoadLibrary(os.path.abspath(dlname))
-net=yolov3_dl.YoloLoad("darknet53_coco.cfg","darknet53.weights")
+
+yolov3_dl.YoloLoad.restype = ctypes.POINTER(ctypes.c_int)
+net=yolov3_dl.YoloLoad("darknet53_coco.cfg".encode('ascii'),"darknet53.weights".encode('ascii'))
+
 files = [f for f in os.listdir('voc2007valid') if re.match(r'[0-9]+.*\.jpg', f)]
 files.sort()
 
@@ -20,8 +23,7 @@ result=(ctypes.c_float*1024)()
 for i in range(0,len(files)):
     img_file="voc2007valid/"+files[i]
     img=cv2.imread(img_file,cv2.IMREAD_COLOR)
-    print(files[i])
-    r=yolov3_dl.YoloDetectFromFile(img_file,net,ctypes.c_float(0.1),result,1024)
+    r=yolov3_dl.YoloDetectFromFile(img_file.encode('ascii'),net,ctypes.c_float(0.1),result,1024)
     for j in range(0,r-1):
         x1=int(result[j*6+2])
         y1=int(result[j*6+3])
@@ -33,4 +35,7 @@ for i in range(0,len(files)):
     if cv2.waitKey(0)==27:
 	    break
 cv2.destroyAllWindows()
+
+
+
 yolov3_dl.YoloRelease(net)
