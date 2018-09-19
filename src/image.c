@@ -81,8 +81,8 @@ static float bilinear_interpolate(image im, float x, float y, int c)
     float dx = x - ix;
     float dy = y - iy;
 
-    float val = (1-dy) * (1-dx) * get_pixel_extend(im, ix, iy, c) + 
-        dy     * (1-dx) * get_pixel_extend(im, ix, iy+1, c) + 
+    float val = (1-dy) * (1-dx) * get_pixel_extend(im, ix, iy, c) +
+        dy     * (1-dx) * get_pixel_extend(im, ix, iy+1, c) +
         (1-dy) *   dx   * get_pixel_extend(im, ix+1, iy, c) +
         dy     *   dx   * get_pixel_extend(im, ix+1, iy+1, c);
     return val;
@@ -124,7 +124,7 @@ image tile_images(image a, image b, int dx)
     if(a.w == 0) return copy_image(b);
     image c = make_image(a.w + b.w + dx, (a.h > b.h) ? a.h : b.h, (a.c > b.c) ? a.c : b.c);
     fill_cpu(c.w*c.h*c.c, 1, c.data, 1);
-    embed_image(a, c, 0, 0); 
+    embed_image(a, c, 0, 0);
     composite_image(b, c, a.w + dx, 0);
     return c;
 }
@@ -546,7 +546,7 @@ void show_image_cv(image p, const char *name, IplImage *disp)
     sprintf(buff, "%s", name);
 
     int step = disp->widthStep;
-    cvNamedWindow(buff, CV_WINDOW_NORMAL); 
+    cvNamedWindow(buff, CV_WINDOW_NORMAL);
     //cvMoveWindow(buff, 100*(windows%10) + 200*(windows/10), 100*(windows%10));
     ++windows;
     for(y = 0; y < p.h; ++y){
@@ -572,7 +572,7 @@ void show_image_cv(image p, const char *name, IplImage *disp)
 }
 #endif
 
-void show_image(image p, const char *name)
+int show_image(image p, const char *name, int ms)
 {
 #ifdef OPENCV
     IplImage *disp = cvCreateImage(cvSize(p.w,p.h), IPL_DEPTH_8U, p.c);
@@ -581,9 +581,13 @@ void show_image(image p, const char *name)
     show_image_cv(copy, name, disp);
     free_image(copy);
     cvReleaseImage(&disp);
+    int c = cvWaitKey(ms);
+    if (c != -1) c = c%256;
+    return c;
 #else
     fprintf(stderr, "Not compiled with OpenCV, saving to %s.png instead\n", name);
     save_image(p, name);
+    return 0;
 #endif
 }
 
@@ -727,7 +731,7 @@ void show_image_layers(image p, char *name)
     for(i = 0; i < p.c; ++i){
         sprintf(buff, "%s - Layer %d", name, i);
         image layer = get_image_layer(p, i);
-        show_image(layer, buff);
+        show_image(layer, buff, 1);
         free_image(layer);
     }
 }
@@ -735,7 +739,7 @@ void show_image_layers(image p, char *name)
 void show_image_collapsed(image p, char *name)
 {
     image c = collapse_image_layers(p, 1);
-    show_image(c, name);
+    show_image(c, name, 1);
     free_image(c);
 }
 
@@ -791,7 +795,7 @@ void place_image(image im, int w, int h, int dx, int dy, image canvas)
 
 image center_crop_image(image im, int w, int h)
 {
-    int m = (im.w < im.h) ? im.w : im.h;   
+    int m = (im.w < im.h) ? im.w : im.h;
     image c = crop_image(im, (im.w - m) / 2, (im.h - m)/2, m, m);
     image r = resize_image(c, w, h);
     free_image(c);
@@ -953,7 +957,7 @@ void letterbox_image_into(image im, int w, int h, image boxed)
         new_w = (im.w * h)/im.h;
     }
     image resized = resize_image(im, new_w, new_h);
-    embed_image(resized, boxed, (w-new_w)/2, (h-new_h)/2); 
+    embed_image(resized, boxed, (w-new_w)/2, (h-new_h)/2);
     free_image(resized);
 }
 
@@ -973,7 +977,7 @@ image letterbox_image(image im, int w, int h)
     fill_image(boxed, .5);
     //int i;
     //for(i = 0; i < boxed.w*boxed.h*boxed.c; ++i) boxed.data[i] = 0;
-    embed_image(resized, boxed, (w-new_w)/2, (h-new_h)/2); 
+    embed_image(resized, boxed, (w-new_w)/2, (h-new_h)/2);
     free_image(resized);
     return boxed;
 }
@@ -1191,7 +1195,7 @@ void grayscale_image_3c(image im)
 {
     assert(im.c == 3);
     int i, j, k;
-    float scale[] = {0.299F, 0.587F, 0.114F};
+    float scale[] = {0.299, 0.587, 0.114};
     for(j = 0; j < im.h; ++j){
         for(i = 0; i < im.w; ++i){
             float val = 0;
@@ -1210,7 +1214,7 @@ image grayscale_image(image im)
     assert(im.c == 3);
     int i, j, k;
     image gray = make_image(im.w, im.h, 1);
-    float scale[] = {0.299F, 0.587F, 0.114F};
+    float scale[] = {0.299, 0.587, 0.114};
     for(k = 0; k < im.c; ++k){
         for(j = 0; j < im.h; ++j){
             for(i = 0; i < im.w; ++i){
@@ -1239,7 +1243,7 @@ image blend_image(image fore, image back, float alpha)
     for(k = 0; k < fore.c; ++k){
         for(j = 0; j < fore.h; ++j){
             for(i = 0; i < fore.w; ++i){
-                float val = alpha * get_pixel(fore, i, j, k) + 
+                float val = alpha * get_pixel(fore, i, j, k) +
                     (1 - alpha)* get_pixel(back, i, j, k);
                 set_pixel(blend, i, j, k, val);
             }
@@ -1346,7 +1350,7 @@ void saturate_exposure_image(image im, float sat, float exposure)
 
 image resize_image(image im, int w, int h)
 {
-    image resized = make_image(w, h, im.c);   
+    image resized = make_image(w, h, im.c);
     image part = make_image(w, im.h, im.c);
     int r, c, k;
     float w_scale = (float)(im.w - 1) / (w - 1);
@@ -1400,22 +1404,22 @@ void test_resize(char *filename)
     image c2 = copy_image(im);
     image c3 = copy_image(im);
     image c4 = copy_image(im);
-    distort_image(c1, .1F, 1.5F, 1.5F);
-    distort_image(c2, -.1F, .66666F, .66666F);
-    distort_image(c3, .1F, 1.5F, .66666F);
-    distort_image(c4, .1F, .66666F, 1.5F);
+    distort_image(c1, .1, 1.5, 1.5);
+    distort_image(c2, -.1, .66666, .66666);
+    distort_image(c3, .1, 1.5, .66666);
+    distort_image(c4, .1, .66666, 1.5);
 
 
-    show_image(im,   "Original");
-    show_image(gray, "Gray");
-    show_image(c1, "C1");
-    show_image(c2, "C2");
-    show_image(c3, "C3");
-    show_image(c4, "C4");
+    show_image(im,   "Original", 1);
+    show_image(gray, "Gray", 1);
+    show_image(c1, "C1", 1);
+    show_image(c2, "C2", 1);
+    show_image(c3, "C3", 1);
+    show_image(c4, "C4", 1);
 #ifdef OPENCV
     while(1){
         image aug = random_augment_image(im, 0, .75, 320, 448, 320, 320);
-        show_image(aug, "aug");
+        show_image(aug, "aug", 1);
         free_image(aug);
 
 
@@ -1430,7 +1434,7 @@ void test_resize(char *filename)
         float dhue = rand_uniform(-hue, hue);
 
         distort_image(c, dhue, dsat, dexp);
-        show_image(c, "rand");
+        show_image(c, "rand", 1);
         printf("%f %f %f\n", dhue, dsat, dexp);
         free_image(c);
         cvWaitKey(0);
@@ -1543,7 +1547,7 @@ image collapse_images_vert(image *ims, int n)
         free_image(copy);
     }
     return filters;
-} 
+}
 
 image collapse_images_horz(image *ims, int n)
 {
@@ -1579,13 +1583,13 @@ image collapse_images_horz(image *ims, int n)
         free_image(copy);
     }
     return filters;
-} 
+}
 
 void show_image_normalized(image im, const char *name)
 {
     image c = copy_image(im);
     normalize_image(c);
-    show_image(c, name);
+    show_image(c, name, 1);
     free_image(c);
 }
 
@@ -1603,7 +1607,7 @@ void show_images(image *ims, int n, char *window)
      */
     normalize_image(m);
     save_image(m, window);
-    show_image(m, window);
+    show_image(m, window, 1);
     free_image(m);
 }
 

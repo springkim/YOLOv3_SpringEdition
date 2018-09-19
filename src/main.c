@@ -168,13 +168,163 @@ char* ParseCfg(char* cfg, char* buffer) {
 	}
 	return buffer;
 }
+
+
+void train_classifier(char *datacfg, char *cfgfile, char *weightfile, int *gpus, int ngpus, int clear, char* base) {
+	int i;
+	float avg_loss = -1;
+	printf("%s\n", base);
+	printf("%d\n", ngpus);
+	network **nets = calloc(ngpus, sizeof(network*));
+
+	srand(time(0));
+	int seed = rand();
+	for (i = 0; i < ngpus; ++i) {
+		srand(seed);
+#ifdef GPU
+		cuda_set_device(gpus[i]);
+#endif
+		nets[i] = load_network(cfgfile, weightfile, clear);
+		nets[i]->learning_rate *= ngpus;
+	}
+	srand(time(0));
+	network *net = nets[0];
+
+	int imgs = net->batch * net->subdivisions * ngpus;
+
+	printf("Learning Rate: %g, Momentum: %g, Decay: %g\n", net->learning_rate, net->momentum, net->decay);
+	list *options = read_data_cfg(datacfg);
+
+	char *backup_directory = option_find_str(options, "backup", "/backup/");
+	int tag = option_find_int_quiet(options, "tag", 0);
+	char *label_list = option_find_str(options, "labels", "data/labels.list");
+	char *train_list = option_find_str(options, "train", "data/train.list");
+	char *tree = option_find_str(options, "tree", 0);
+	if (tree) net->hierarchy = read_tree(tree);
+	int classes = option_find_int(options, "classes", 2);
+
+	char **labels = 0;
+	if (!tag) {
+		labels = get_labels(label_list);
+	}
+	list *plist = get_paths(train_list);
+	char **paths = (char **)list_to_array(plist);
+	printf("%d\n", plist->size);
+	int N = plist->size;
+	double time;
+
+	load_args args = { 0 };
+	args.w = net->w;
+	args.h = net->h;
+	args.threads = 32;
+	args.hierarchy = net->hierarchy;
+
+	args.min = net->min_ratio*net->w;
+	args.max = net->max_ratio*net->w;
+	printf("%d %d\n", args.min, args.max);
+	args.angle = net->angle;
+	args.aspect = net->aspect;
+	args.exposure = net->exposure;
+	args.saturation = net->saturation;
+	args.hue = net->hue;
+	args.size = net->w;
+
+	args.paths = paths;
+	args.classes = classes;
+	args.n = imgs;
+	args.m = N;
+	args.labels = labels;
+	if (tag) {
+		args.type = TAG_DATA;
+	} else {
+		args.type = CLASSIFICATION_DATA;
+	}
+
+	data train;
+	data buffer;
+	pthread_t load_thread;
+	args.d = &buffer;
+	load_thread = load_data(args);
+
+	int count = 0;
+	int epoch = (*net->seen) / N;
+	while (get_current_batch(net) < net->max_batches || net->max_batches == 0) {
+		if (net->random && count++ % 40 == 0) {
+			printf("Resizing\n");
+			int dim = (rand() % 11 + 4) * 32;
+			//if (get_current_batch(net)+200 > net->max_batches) dim = 608;
+			//int dim = (rand() % 4 + 16) * 32;
+			printf("%d\n", dim);
+			args.w = dim;
+			args.h = dim;
+			args.size = dim;
+			args.min = net->min_ratio*dim;
+			args.max = net->max_ratio*dim;
+			printf("%d %d\n", args.min, args.max);
+
+			pthread_join(load_thread, 0);		
+			train = buffer;
+			free_data(train);
+			load_thread = load_data(args);
+
+			for (i = 0; i < ngpus; ++i) {
+				resize_network(nets[i], dim, dim);
+			}
+			net = nets[0];
+		}
+		time = what_time_is_it_now();
+		pthread_join(load_thread, 0);		///dead lock......
+		train = buffer;
+		load_thread = load_data(args);
+		printf("Loaded: %lf seconds\n", what_time_is_it_now() - time);
+		time = what_time_is_it_now();
+
+		float loss = 0;
+#ifdef GPU
+		if (ngpus == 1) {
+			loss = train_network(net, train);
+		} else {
+			loss = train_networks(nets, ngpus, train, 4);
+		}
+#else
+		loss = train_network(net, train);
+#endif
+		if (avg_loss == -1) avg_loss = loss;
+		avg_loss = avg_loss*.9 + loss*.1;
+		printf("%ld, %.3f: %f, %f avg, %f rate, %lf seconds, %ld images\n", get_current_batch(net), (float)(*net->seen) / N, loss, avg_loss, get_current_rate(net), what_time_is_it_now() - time, *net->seen);
+		free_data(train);
+		/*if (*net->seen / N > epoch) {
+			epoch = *net->seen / N;
+			char buff[256];
+			sprintf(buff, "%s/%s_%d.weights", backup_directory, base, epoch);
+			save_weights(net, buff);
+		}*/
+		size_t iter = get_current_batch(net);
+		if (((iter % 100 == 0)&&iter<1000) || (iter%1000==0)) {
+			char buff[256];
+			sprintf(buff, "%s/%s_%d.weights", backup_directory, base, get_current_batch(net));
+			save_weights(net, buff);
+		}
+	}
+	char buff[256];
+	sprintf(buff, "%s/%s.weights", backup_directory, base);
+	save_weights(net, buff);
+	pthread_join(load_thread, 0);
+
+	free_network(net);
+	if (labels) free_ptrs((void**)labels, classes);
+	free_ptrs((void**)paths, plist->size);
+	free_list(plist);
+	free(base);
+}
+
 /*
 *	@YoloTrain
 *	@param1 : 기준 디렉터리
 *	@param2: data파일 이름(파일만 명시)
 *	@param3 : cfg파일 이름(파일만 명시)
 */
-void YoloTrain(char* _base_dir, char* _datafile, char* _cfgfile) {
+void YoloTrain(char* _base_dir, char* _datafile, char* _cfgfile,char* option) {
 	//모든 파일들은 base_dir을 기준으로 찾습니다.(상대 경로일경우 절대경로로 바꿔줍니다)
 	char rpath[MAX_PATH];
 	strcpy(rpath, _base_dir);
@@ -184,7 +334,6 @@ void YoloTrain(char* _base_dir, char* _datafile, char* _cfgfile) {
 #else
 	realpath(rpath,apath);
 #endif
-
 	//현재 실행파일의 경로를 저장합니다.
 	char curr_dir[MAX_PATH];
 	//chdir(curr_dir);
@@ -252,13 +401,27 @@ void YoloTrain(char* _base_dir, char* _datafile, char* _cfgfile) {
 		i -= 100;
 	}
 	puts("Train start!!");
-	train_detector3(
+	if (strcmp(option, "detector") == 0) {
+		train_detector3(
 			_datafile
 			, _cfgfile
 			, backup
 			, gpu_indexes
 			, ngpu	/*number of gpu*/
-			, 0,base);
+			, 0, base);
+	} else if (strcmp(option, "classifier") == 0) {
+		train_classifier(
+			_datafile
+			, _cfgfile
+			, backup
+			, gpu_indexes
+			, ngpu	/*number of gpu*/
+			, 0, base
+		);
+	} else {
+		fprintf(stderr, "Invalid option! select [detector, classfier] only");
+		exit(1);
+	}
 #if defined(_WIN32) || defined(_WIN64)
 	#if !defined(_CONSOLE) || defined(_WINDLL)
 	FreeConsole();
@@ -431,19 +594,18 @@ void calc_anchors(char *datacfg, int num_of_clusters, int width, int height, int
 	cvReleaseMat(&centers);
 	cvReleaseMat(&labels);
 }*/
+
+
+
 int main(int argc, char** argv) {
-	//dir , data , cfg
-	//calc_anchors("densenet201-7anchors-random-L.data"
-	//			 , 9, 608, 608, 1);
-	//return 0;
-	if(argc<4){
+	//[detector, classifier] dir , data , cfg
+	if(argc<5){
 		puts("[arguments] working dir, data file, cfg file");
 		return 1;
 	}
-	YoloTrain(argv[1], argv[2], argv[3]);
+	YoloTrain(argv[2], argv[3], argv[4], argv[1]);
 
 	//test_detector("coco.data", "yolov3.cfg", "yolov3.weights", NULL, 0.5F, 0.0F, 0);
-
 	//test_detector("a.data", "darknet53.cfg", "darknet53_608_random_10000.weights", NULL, 0.1F, 0.0F, 0);
 	//Windows 1080ti -> 0.042
 	//Ubuntu 1080    -> 0.036

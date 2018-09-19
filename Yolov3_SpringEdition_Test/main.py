@@ -11,7 +11,7 @@ else:
 yolov3_dl=ctypes.cdll.LoadLibrary(os.path.abspath(dlname))
 
 yolov3_dl.YoloLoad.restype = ctypes.POINTER(ctypes.c_int)
-net=yolov3_dl.YoloLoad("darknet53_coco.cfg".encode('ascii'),"darknet53.weights".encode('ascii'))
+net=yolov3_dl.YoloLoad("yolov3_darknet53_coco.cfg".encode('ascii'),"yolov3_darknet53.weights".encode('ascii'))
 
 files = [f for f in os.listdir('voc2007valid') if re.match(r'[0-9]+.*\.jpg', f)]
 files.sort()

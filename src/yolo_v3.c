@@ -50,6 +50,59 @@ int YoloDetect(image img, int* _net, float threshold, float* result, int result_
 	return (int)result_idx;
 }
 
+int YoloClassify(image img, int* _net,float* result) {
+	network* net = (network*)_net;
+	image sized = letterbox_image(img, net->w, net->h);
+	float *pred = network_predict(net, sized.data);
+	float* beg = pred;
+	float* end = pred + net->outputs;
+	float* top = beg;
+	while (beg != end) {
+		if (*top < *beg) {
+			top = beg;
+		}
+		beg++;
+	}
+	if (result) {
+		memcpy(result, pred, sizeof(float)*net->outputs);
+	}
+	return top - pred;
+	//if (net->hierarchy) hierarchy_predictions(pred, net->outputs, net->hierarchy, 1, 1);
+}
+
+DLL_MACRO int YoloClassifyFromFile(char* img_path, int* _net, float* result) {
+	image im = load_image_color(img_path, 0, 0);
+	int r = YoloClassify(im, _net, result);
+	free_image(im);
+	return r;
+}
+DLL_MACRO int YoloClassifyFromImage(float* data, int w, int h, int c, int* _net, float* result) {
+	image im;
+	im.data = data;
+	im.w = w;
+	im.h = h;
+	im.c = c;
+	return YoloClassify(im, _net, result);
+}
+DLL_MACRO int YoloClassifyFromPyImage(float* data, int W, int H, int C, int* _net, float* result) {
+	float* fdata = (float*)calloc(H*W*C, sizeof(float));
+	for (int h = 0; h < H; ++h) {
+		for (int c = 0; c < C; ++c) {
+			for (int w = 0; w < W; ++w) {
+				fdata[(abs(C - 1 - c))*W*H + h*W + w] = data[h*W*C + w*C + c] / 255.0F;
+			}
+		}
+	}
+
+	image im;
+	im.data = fdata;
+	im.w = W;
+	im.h = H;
+	im.c = C;
+	int r = YoloClassify(im, _net,  result);
+	free(fdata);
+	return r;
+}
 /*
 *	@YoloLoad
 *	@param1 : cfg 파일 경로
@@ -63,12 +116,12 @@ DLL_MACRO int* YoloLoad(char* cfgfile, char* weightsfile) {
 	network* net = NULL;//(network*)malloc(sizeof(network));
 	//memset(net, 0, sizeof(network));
 	net = parse_network_cfg(cfgfile);
-	net->batch = 1;
-	net->subdivisions = 1;
+	//Automatically set batch and subdivisions as 1 in test mode
+	//net->batch = 1;
+	//net->subdivisions = 1;
 	load_weights(net, weightsfile);
 	set_batch_network(net, 1);
-	srand(921126);
-	
+	srand((int)"spring");
 	return (int*)net;
 }
 /*

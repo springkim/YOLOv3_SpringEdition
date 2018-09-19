@@ -54,7 +54,7 @@ layer make_yolo_layer(int batch, int w, int h, int n, int total, int *mask, int 
     l.delta_gpu = cuda_make_array(l.delta, batch*l.outputs);
 #endif
 
-    fprintf(stderr, "detection\n");
+    fprintf(stderr, "yolo\n");
     srand(0);
 
     return l;
@@ -258,8 +258,8 @@ void correct_yolo_boxes(detection *dets, int n, int w, int h, int netw, int neth
     }
     for (i = 0; i < n; ++i){
         box b = dets[i].bbox;
-        b.x =  (b.x - (netw - new_w)/2./netw) / ((float)new_w/netw); 
-        b.y =  (b.y - (neth - new_h)/2./neth) / ((float)new_h/neth); 
+        b.x =  (b.x - (netw - new_w)/2./netw) / ((float)new_w/netw);
+        b.y =  (b.y - (neth - new_h)/2./neth) / ((float)new_h/neth);
         b.w *= (float)netw/new_w;
         b.h *= (float)neth/new_h;
         if(!relative){
@@ -371,4 +371,3 @@ void backward_yolo_layer_gpu(layer l, network net)
     axpy_gpu(l.batch*l.inputs, 1, l.delta_gpu, 1, net.delta_gpu, 1);
 }
 #endif
-

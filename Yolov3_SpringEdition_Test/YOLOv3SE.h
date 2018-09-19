@@ -3,8 +3,8 @@
 *  YOLOv3_SE.h
 *  YOLOv3_SpringEdition
 *
-*  Created by kimbom on 2018. 03. 31...
-*  Copyright 2018 Sogang Univ. All rights reserved.
+*  Created by kimbomm on 2018. 03. 31...
+*  Copyright 2018 kimbomm. All rights reserved.
 *
 */
 #if !defined(YOLO_7E0_05_17_YOLOV3_H_INCLUDED)
@@ -69,11 +69,15 @@ private:
 	using YoloDetectFromFileType = int(*)(char* img_path, int* _net, float threshold, float* result, int result_sz);
 	using YoloDetectFromImageType = int(*)(float* data, int w, int h, int c, int* _net, float threshold, float* result, int result_sz);
 	using YoloReleaseType = void(*)(int* net);
+	using YoloClassifyFromFileType = int(*)(char* img_path, int* _net, float* result);
+	using YoloClassifyFromImageType = int(*)(float* data, int w, int h, int c, int* _net, float* result);
 private:
 	YoloLoadType YoloLoad = nullptr;
 	YoloTrainType YoloTrain = nullptr;
 	YoloDetectFromFileType YoloDetectFromFile = nullptr;
 	YoloDetectFromImageType YoloDetectFromImage = nullptr;
+	YoloClassifyFromFileType YoloClassifyFromFile = nullptr;
+	YoloClassifyFromImageType YoloClassifyFromImage = nullptr;
 	YoloReleaseType YoloRelease=nullptr;
 protected:
 	int* m_network = nullptr;
@@ -151,25 +155,6 @@ public:
 		return boxes;
 	}
 	std::vector<BoxSE> Detect(IplImage* img, float threshold) {
-		auto  ipl_to_image=[](IplImage* src)->image {
-			image out;
-			out.data = 0;
-			out.h = src->height;
-			out.w = src->width;
-			out.c = src->nChannels;
-			out.data = (float*)calloc(out.h*out.w*out.c, sizeof(float));
-			unsigned char *data = (unsigned char *)src->imageData;
-			int step = src->widthStep;
-			int i, j, k;
-			for (i = 0; i < out.h; ++i) {
-				for (k = 0; k < out.c; ++k) {
-					for (j = 0; j < out.w; ++j) {
-						out.data[k*out.w*out.h + i*out.w + j] = data[i*step + j*out.c + k] / 255.;
-					}
-				}
-			}
-			return out;
-		};
 		float result[6000] = { 0 };
 		image im = ipl_to_image(img);
 		int n = YoloDetectFromImage(im.data,im.w,im.h,im.c,this->m_network, threshold, result, 6000);
@@ -190,6 +175,22 @@ public:
 		}
 		std::sort(boxes.begin(), boxes.end(), [](BoxSE a, BoxSE b)->bool { return a.m_score > b.m_score; });
 		return boxes;
+	}
+
+	int Classify(IplImage* img) {
+		image im = ipl_to_image(img);
+		int r=this->YoloClassifyFromImage(im.data, im.w, im.h, im.c, this->m_network, nullptr);
+		free(im.data);
+		return r;
+	}
+	int Classify(cv::Mat img) {
+		IplImage* iplimg = new IplImage(img);
+		int r = Classify(iplimg);
+		delete iplimg;
+		return r;
+	}
+	int Classify(std::string file) {
+		return YoloClassifyFromFile(const_cast<char*>(file.c_str()), this->m_network, nullptr);
 	}
 	std::vector<BoxSE> GroundTruth(std::string image_file) {
 		std::vector<BoxSE> ret;
@@ -227,6 +228,8 @@ public:
 		YoloTrain = (YoloTrainType)GetProcAddress(m_hmod, "YoloTrain");
 		YoloDetectFromFile = (YoloDetectFromFileType)GetProcAddress(m_hmod, "YoloDetectFromFile");
 		YoloDetectFromImage = (YoloDetectFromImageType)GetProcAddress(m_hmod, "YoloDetectFromImage");
+		YoloClassifyFromFile = (YoloClassifyFromFileType)GetProcAddress(m_hmod, "YoloClassifyFromFile");
+		YoloClassifyFromImage = (YoloClassifyFromImageType)GetProcAddress(m_hmod, "YoloClassifyFromImage");
 		YoloRelease = (YoloReleaseType)GetProcAddress(m_hmod, "YoloRelease");
 #else
 		m_hmod = dlopen("libYOLOv3SE.so",RTLD_LAZY);
@@ -244,6 +247,26 @@ public:
 	}
 	~YOLOv3() {
 		this->Release();
+	}
+private:
+	image ipl_to_image(IplImage* src){
+		image out;
+		out.data = 0;
+		out.h = src->height;
+		out.w = src->width;
+		out.c = src->nChannels;
+		out.data = (float*)calloc(out.h*out.w*out.c, sizeof(float));
+		unsigned char *data = (unsigned char *)src->imageData;
+		int step = src->widthStep;
+		int i, j, k;
+		for (i = 0; i < out.h; ++i) {
+			for (k = 0; k < out.c; ++k) {
+				for (j = 0; j < out.w; ++j) {
+					out.data[k*out.w*out.h + i*out.w + j] = data[i*step + j*out.c + k] / 255.F;
+				}
+			}
+		}
+		return out;
 	}
 };
 

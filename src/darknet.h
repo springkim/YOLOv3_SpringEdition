@@ -27,6 +27,7 @@ inline unsigned int rand_ss(){
 
 #ifndef DARKNET_API
 #define DARKNET_API
+#include<stdio.h>
 #include <stdlib.h>
 #include<time.h>
 #include <string.h>
@@ -81,7 +82,7 @@ typedef struct{
 tree *read_tree(char *filename);
 
 typedef enum{
-    LOGISTIC, RELU, RELIE, LINEAR, RAMP, TANH, PLSE, LEAKY, ELU, LOGGY, STAIR, HARDTAN, LHTAN
+    LOGISTIC, RELU, RELIE, LINEAR, RAMP, TANH, PLSE, LEAKY, ELU, LOGGY, STAIR, HARDTAN, LHTAN, SELU
 } ACTIVATION;
 
 typedef enum{
@@ -113,6 +114,7 @@ typedef enum {
     XNOR,
     REGION,
     YOLO,
+	ISEG,
     REORG,
     UPSAMPLE,
     LOGXENT,
@@ -193,6 +195,7 @@ struct layer{
     float ratio;
     float learning_rate_scale;
     float clip;
+	int noloss;
     int softmax;
     int classes;
     int coords;
@@ -230,6 +233,7 @@ struct layer{
     int dontload;
     int dontsave;
     int dontloadscales;
+	int numload;
 
     float temperature;
     float probability;
@@ -240,6 +244,8 @@ struct layer{
     int   * input_layers;
     int   * input_sizes;
     int   * map;
+	int   * counts;
+	float ** sums;
     float * rand_;
     float * cost;
     float * state;
@@ -285,7 +291,7 @@ struct layer{
 
     float * m;
     float * v;
-    
+
     float * bias_m;
     float * bias_v;
     float * scale_m;
@@ -310,7 +316,7 @@ struct layer{
     float *g_cpu;
     float *o_cpu;
     float *c_cpu;
-    float *dc_cpu; 
+    float *dc_cpu;
 
     float * binary_input;
 
@@ -337,7 +343,7 @@ struct layer{
 
     struct layer *input_h_layer;
     struct layer *state_h_layer;
-	
+
     struct layer *wz;
     struct layer *uz;
     struct layer *wr;
@@ -377,7 +383,7 @@ struct layer{
     float *g_gpu;
     float *o_gpu;
     float *c_gpu;
-    float *dc_gpu; 
+    float *dc_gpu;
 
     float *m_gpu;
     float *v_gpu;
@@ -567,7 +573,7 @@ typedef struct{
 } data;
 
 typedef enum {
-    CLASSIFICATION_DATA, DETECTION_DATA, CAPTCHA_DATA, REGION_DATA, IMAGE_DATA, COMPARE_DATA, WRITING_DATA, SWAG_DATA, TAG_DATA, OLD_CLASSIFICATION_DATA, STUDY_DATA, DET_DATA, SUPER_DATA, LETTERBOX_DATA, REGRESSION_DATA, SEGMENTATION_DATA, INSTANCE_DATA
+    CLASSIFICATION_DATA, DETECTION_DATA, CAPTCHA_DATA, REGION_DATA, IMAGE_DATA, COMPARE_DATA, WRITING_DATA, SWAG_DATA, TAG_DATA, OLD_CLASSIFICATION_DATA, STUDY_DATA, DET_DATA, SUPER_DATA, LETTERBOX_DATA, REGRESSION_DATA, SEGMENTATION_DATA, INSTANCE_DATA, ISEG_DATA
 } data_type;
 
 typedef struct load_args{
@@ -732,7 +738,7 @@ int resize_network(network *net, int w, int h);
 void free_matrix(matrix m);
 void test_resize(char *filename);
 void save_image(image p, const char *name);
-void show_image(image p, const char *name);
+int show_image(image p, const char *name, int ms);
 image copy_image(image p);
 void draw_box_width(image a, int x1, int y1, int x2, int y2, int w, float r, float g, float b);
 float get_current_rate(network *net);

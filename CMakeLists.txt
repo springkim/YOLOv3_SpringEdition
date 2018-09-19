@@ -74,6 +74,8 @@ set(SOURCE_FILES
         src/im2col.h
         src/image.c
         src/image.h
+		src/iseg_layer.c
+		src/iseg_layer.h
         src/l2norm_layer.c
         src/l2norm_layer.h
         src/layer.c

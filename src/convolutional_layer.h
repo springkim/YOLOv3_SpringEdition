@@ -47,4 +47,3 @@ int convolutional_out_height(convolutional_layer layer);
 int convolutional_out_width(convolutional_layer layer);
 
 #endif
-

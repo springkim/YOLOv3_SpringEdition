@@ -5,3 +5,4 @@ powershell -nologo -noprofile -command "& { Add-Type -A 'System.IO.Compression.F
 IF EXIST "%TEMP%\voc2007valid.zip" (
 	DEL "%TEMP%\voc2007valid.zip"
 )
+pause

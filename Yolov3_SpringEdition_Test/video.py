@@ -5,6 +5,11 @@ import cv2
 import platform
 import random
 import numpy as np
+import urllib.request
+if not os.path.isfile("paris.avi"):
+	print("Downloading paris.avi")
+	urllib.request.urlretrieve("https://github.com/springkim/YOLOv3_SpringEdition/releases/download/image/paris.avi","paris.avi")
+
 dlname="libYOLOv3SE"
 if platform.system()=='Windows':
     dlname+=".dll"
@@ -13,7 +18,7 @@ else:
 yolov3_dl=ctypes.cdll.LoadLibrary(os.path.abspath(dlname))
 
 yolov3_dl.YoloLoad.restype = ctypes.POINTER(ctypes.c_int)
-net=yolov3_dl.YoloLoad("darknet53_coco.cfg".encode('ascii'),"darknet53.weights".encode('ascii'))
+net=yolov3_dl.YoloLoad("yolov3_darknet53_coco.cfg".encode('ascii'),"yolov3_darknet53.weights".encode('ascii'))
 
 vc = cv2.VideoCapture('paris.avi')
 

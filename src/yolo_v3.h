@@ -34,8 +34,9 @@
 #define DLL_MACRO
 #endif
 
-extern void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, int ngpus, int clear,char* base);
+//extern void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, int ngpus, int clear,char* base);
 int YoloDetect(image img, int* _net, float threshold, float* result, int result_sz);
+int YoloClassify(image img, int* _net, float* result);
 
 //DLL_MACRO void YoloTrain(char* _base_dir, char* _datafile, char* _cfgfile);
 DLL_MACRO int* YoloLoad(char* cfgfile, char* weightsfile);
@@ -43,5 +44,8 @@ DLL_MACRO int YoloDetectFromFile(char* img_path, int* _net, float threshold, flo
 DLL_MACRO int YoloDetectFromImage(float* data,int w,int h,int c, int* _net, float threshold, float* result, int result_sz) ;
 DLL_MACRO int YoloDetectFromPyImage(float* data, int W, int H, int C, int* _net, float threshold, float* result, int result_sz);
 DLL_MACRO void YoloRelease(int* net);
+DLL_MACRO int YoloClassifyFromFile(char* img_path, int* _net, float* result);
+DLL_MACRO int YoloClassifyFromImage(float* data, int w, int h, int c, int* _net, float* result);
+DLL_MACRO int YoloClassifyFromPyImage(float* data, int W, int H, int C, int* _net, float* result);
 //DLL_MACRO float YoloLoss(char* cfg, char* weights, char* image_list_file);
 //DLL_MACRO void YoloVisualization(char* img_path, int* _net);

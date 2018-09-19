@@ -27,6 +27,7 @@
 #include "parser.h"
 #include "region_layer.h"
 #include "yolo_layer.h"
+#include "iseg_layer.h"
 #include "reorg_layer.h"
 #include "rnn_layer.h"
 #include "route_layer.h"
@@ -52,6 +53,7 @@ LAYER_TYPE string_to_layer_type(char * type)
     if (strcmp(type, "[detection]")==0) return DETECTION;
     if (strcmp(type, "[region]")==0) return REGION;
     if (strcmp(type, "[yolo]")==0) return YOLO;
+    if (strcmp(type, "[iseg]")==0) return ISEG;
     if (strcmp(type, "[local]")==0) return LOCAL;
     if (strcmp(type, "[conv]")==0
             || strcmp(type, "[convolutional]")==0) return CONVOLUTIONAL;
@@ -265,25 +267,26 @@ layer parse_connected(list *options, size_params params)
     return l;
 }
 
-softmax_layer parse_softmax(list *options, size_params params)
+layer parse_softmax(list *options, size_params params)
 {
     int groups = option_find_int_quiet(options, "groups",1);
-    softmax_layer layer = make_softmax_layer(params.batch, params.inputs, groups);
-    layer.temperature = option_find_float_quiet(options, "temperature", 1);
+    layer l = make_softmax_layer(params.batch, params.inputs, groups);
+    l.temperature = option_find_float_quiet(options, "temperature", 1);
     char *tree_file = option_find_str(options, "tree", 0);
-    if (tree_file) layer.softmax_tree = read_tree(tree_file);
-    layer.w = params.w;
-    layer.h = params.h;
-    layer.c = params.c;
-    layer.spatial = option_find_float_quiet(options, "spatial", 0);
-    return layer;
+    if (tree_file) l.softmax_tree = read_tree(tree_file);
+    l.w = params.w;
+    l.h = params.h;
+    l.c = params.c;
+    l.spatial = option_find_float_quiet(options, "spatial", 0);
+    l.noloss =  option_find_int_quiet(options, "noloss", 0);
+    return l;
 }
 
 int *parse_yolo_mask(char *a, int *num)
 {
     int *mask = 0;
     if(a){
-        int len = (int)strlen(a);
+        int len = strlen(a);
         int n = 1;
         int i;
         for(i = 0; i < len; ++i){
@@ -312,7 +315,7 @@ layer parse_yolo(list *options, size_params params)
     assert(l.outputs == params.inputs);
 
     l.max_boxes = option_find_int_quiet(options, "max",90);
-    l.jitter = option_find_float(options, "jitter", .2F);
+    l.jitter = option_find_float(options, "jitter", .2);
 
     l.ignore_thresh = option_find_float(options, "ignore_thresh", .5);
     l.truth_thresh = option_find_float(options, "truth_thresh", 1);
@@ -323,7 +326,7 @@ layer parse_yolo(list *options, size_params params)
 
     a = option_find_str(options, "anchors", 0);
     if(a){
-        int len = (int)strlen(a);
+        int len = strlen(a);
         int n = 1;
         int i;
         for(i = 0; i < len; ++i){
@@ -335,6 +338,15 @@ layer parse_yolo(list *options, size_params params)
             a = strchr(a, ',')+1;
         }
     }
+    return l;
+}
+
+layer parse_iseg(list *options, size_params params)
+{
+    int classes = option_find_int(options, "classes", 20);
+    int ids = option_find_int(options, "ids", 32);
+    layer l = make_iseg_layer(params.batch, params.w, params.h, classes, ids);
+    assert(l.outputs == params.inputs);
     return l;
 }
 
@@ -353,7 +365,7 @@ layer parse_region(list *options, size_params params)
     l.softmax = option_find_int(options, "softmax", 0);
     l.background = option_find_int_quiet(options, "background", 0);
     l.max_boxes = option_find_int_quiet(options, "max",30);
-    l.jitter = option_find_float(options, "jitter", .2F);
+    l.jitter = option_find_float(options, "jitter", .2);
     l.rescore = option_find_int_quiet(options, "rescore",0);
 
     l.thresh = option_find_float(options, "thresh", .5);
@@ -375,7 +387,7 @@ layer parse_region(list *options, size_params params)
 
     char *a = option_find_str(options, "anchors", 0);
     if(a){
-        int len = (int)strlen(a);
+        int len = strlen(a);
         int n = 1;
         int i;
         for(i = 0; i < len; ++i){
@@ -408,7 +420,7 @@ detection_layer parse_detection(list *options, size_params params)
     layer.object_scale = option_find_float(options, "object_scale", 1);
     layer.noobject_scale = option_find_float(options, "noobject_scale", 1);
     layer.class_scale = option_find_float(options, "class_scale", 1);
-    layer.jitter = option_find_float(options, "jitter", .2F);
+    layer.jitter = option_find_float(options, "jitter", .2);
     layer.random = option_find_int_quiet(options, "random", 0);
     layer.reorg = option_find_int_quiet(options, "reorg", 0);
     return layer;
@@ -472,7 +484,7 @@ maxpool_layer parse_maxpool(list *options, size_params params)
 {
     int stride = option_find_int(options, "stride",1);
     int size = option_find_int(options, "size",stride);
-    int padding = option_find_int_quiet(options, "padding", (size-1)/2);
+    int padding = option_find_int_quiet(options, "padding", size-1);
 
     int batch,h,w,c;
     h = params.h;
@@ -510,8 +522,8 @@ dropout_layer parse_dropout(list *options, size_params params)
 
 layer parse_normalization(list *options, size_params params)
 {
-    float alpha = option_find_float(options, "alpha", .0001F);
-    float beta =  option_find_float(options, "beta" , .75F);
+    float alpha = option_find_float(options, "alpha", .0001);
+    float beta =  option_find_float(options, "beta" , .75);
     float kappa = option_find_float(options, "kappa", 1);
     int size = option_find_int(options, "size", 5);
     layer l = make_normalization_layer(params.batch, params.w, params.h, params.c, size, alpha, beta, kappa);
@@ -589,7 +601,7 @@ layer parse_upsample(list *options, size_params params, network *net)
 route_layer parse_route(list *options, size_params params, network *net)
 {
     char *l = option_find(options, "layers");
-    int len = (int)strlen(l);
+    int len = strlen(l);
     if(!l) error("Route Layer must specify input layers");
     int n = 1;
     int i;
@@ -643,9 +655,9 @@ learning_rate_policy get_policy(char *s)
 void parse_net_options(list *options, network *net)
 {
     net->batch = option_find_int(options, "batch",1);
-    net->learning_rate = option_find_float(options, "learning_rate", .001F);
-    net->momentum = option_find_float(options, "momentum", .9F);
-    net->decay = option_find_float(options, "decay", .0001F);
+    net->learning_rate = option_find_float(options, "learning_rate", .001);
+    net->momentum = option_find_float(options, "momentum", .9);
+    net->decay = option_find_float(options, "decay", .0001);
     int subdivs = option_find_int(options, "subdivisions",1);
     net->time_steps = option_find_int_quiet(options, "time_steps",1);
     net->notruth = option_find_int_quiet(options, "notruth",0);
@@ -656,9 +668,9 @@ void parse_net_options(list *options, network *net)
 
     net->adam = option_find_int_quiet(options, "adam", 0);
     if(net->adam){
-        net->B1 = option_find_float(options, "B1", .9F);
-        net->B2 = option_find_float(options, "B2", .999F);
-        net->eps = option_find_float(options, "eps", .0000001F);
+        net->B1 = option_find_float(options, "B1", .9);
+        net->B2 = option_find_float(options, "B2", .999);
+        net->eps = option_find_float(options, "eps", .0000001);
     }
 
     net->h = option_find_int_quiet(options, "height",0);
@@ -692,7 +704,7 @@ void parse_net_options(list *options, network *net)
         char *p = option_find(options, "scales");
         if(!l || !p) error("STEPS policy must have steps and scales in cfg file");
 
-        int len = (int)strlen(l);
+        int len = strlen(l);
         int n = 1;
         int i;
         for(i = 0; i < len; ++i){
@@ -740,7 +752,10 @@ network *parse_network_cfg(char *filename)
     list *options = s->options;
     if(!is_network(s)) error("First section must be [net] or [network]");
     parse_net_options(options, net);
-
+#ifdef _WINDLL
+	net->batch = 1;
+	net->subdivisions = 1;
+#endif
     params.h = net->h;
     params.w = net->w;
     params.c = net->c;
@@ -791,6 +806,8 @@ network *parse_network_cfg(char *filename)
             l = parse_region(options, params);
         }else if(lt == YOLO){
             l = parse_yolo(options, params);
+        }else if(lt == ISEG){
+            l = parse_iseg(options, params);
         }else if(lt == DETECTION){
             l = parse_detection(options, params);
         }else if(lt == SOFTMAX){
@@ -829,6 +846,7 @@ network *parse_network_cfg(char *filename)
         l.stopbackward = option_find_int_quiet(options, "stopbackward", 0);
         l.dontsave = option_find_int_quiet(options, "dontsave", 0);
         l.dontload = option_find_int_quiet(options, "dontload", 0);
+        l.numload = option_find_int_quiet(options, "numload", 0);
         l.dontloadscales = option_find_int_quiet(options, "dontloadscales", 0);
         l.learning_rate_scale = option_find_float_quiet(options, "learning_rate", 1);
         l.smooth = option_find_float_quiet(options, "smooth", 0);
@@ -882,11 +900,11 @@ list *read_cfg(char *filename)
     list *options = make_list();
     section *current = 0;
     while((line=fgetl(file)) != 0){
-#ifdef __linux__
-		if (line[strlen(line) - 1] == '\r') {
-			line[strlen(line) - 1] = '\0';
-		}
-#endif
+		#ifdef __linux__
+			if (line[strlen(line) - 1] == '\r') {
+				line[strlen(line) - 1] = '\0';
+			}
+		#endif
         ++ nu;
         strip(line);
         switch(line[0]){
@@ -1157,7 +1175,8 @@ void load_convolutional_weights(layer l, FILE *fp)
         //load_convolutional_weights_binary(l, fp);
         //return;
     }
-    int num = l.nweights;
+    if(l.numload) l.n = l.numload;
+    int num = l.c/l.groups*l.n*l.size*l.size;
     fread(l.biases, sizeof(float), l.n, fp);
     if (l.batch_normalize && (!l.dontloadscales)){
         fread(l.scales, sizeof(float), l.n, fp);
@@ -1298,4 +1317,3 @@ void load_weights(network *net, char *filename)
 {
     load_weights_upto(net, filename, 0, net->n);
 }
-

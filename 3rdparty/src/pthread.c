@@ -13,9 +13,13 @@ typedef void (*windows_thread)(void *);
 int pthread_create(pthread_t *thread, const pthread_attr_t *attr, void
 				   *(*start_routine)(void *), void *arg)
 {
-	uintptr_t handle = _beginthread((windows_thread)start_routine,0,arg);
+	DWORD dwThreadId = 1;
+
+	HANDLE handle = CreateThread(NULL, 0, start_routine, arg, 0, &dwThreadId);
+
+	//uintptr_t handle = _beginthread((windows_thread)start_routine,0,arg);
 	thread->handle = (HANDLE)handle;
-	if(thread->handle == (HANDLE)-1){
+	if(thread->handle == (HANDLE)NULL){
 		return 1;
 	}else{
 		return 0;
@@ -36,6 +40,7 @@ void pthread_exit(void *value_ptr)
 int pthread_join(pthread_t thread, void **value_ptr)
 {
 	DWORD retvalue = WaitForSingleObject(thread.handle,INFINITE);
+	CloseHandle(thread.handle);
 	if(retvalue == WAIT_OBJECT_0){
 		return 0;
 	}else{
