@@ -29,7 +29,7 @@ std::vector<BoxSE> boxes = detector.Detect(img, 0.5F);
 ### 1. Setup for train.
 
 #### 1.1. Train detector
-You need only 2 files for train that are **YOLOv3SE_Train.exe** and **cudnn64_7.dll** on Windows. If you are on Linux, then you need only **YOLOv3SE_Train**. This files are in `YOLOv3_SpringEdition/bin`.
+You need only 2 files for train that are **YOLOv3SE_Train.exe** and **cudnn64_7.dll** on Windows. If you are on Linux, then you need only **YOLOv3SE_Train**. This files are in `YOLOv3_SpringEdition/bin`. or you can make it using `build_windows.bat` and `build_linux.sh`.
 
 The requirement interface not changed. Same as **[pjreddie/darknet](https://github.com/pjreddie/darknet)**.
 
@@ -41,12 +41,34 @@ The **YOLOv3SE_Train.exe**'s arguments are `[option]`,`[base directory]`,`[data 
 
 And YOLOv3SE_Train.exe is automatically choosing multi-gpu training. and select latest backup weights file.
 
+Example : [Yolov3_SpringEdition_Train/DetectorExample/](Yolov3_SpringEdition_Train/DetectorExample/)
+
+##### Sample directory structure with VOC2007 dataset.
+```
+┌ voc2007train
+│  ├ 000012.jpg
+│  ├ 000012.txt
+│  ├ 000017.jpg
+│  ...
+│  └ 009961.txt
+├ backup
+├ yolov3_darknet53.cfg
+├ voc2007.data
+├ voc2007.names
+├ train.txt
+├ cudnn64_7.dll
+└ YOLOv3SE_ Train.exe
+```
+##### Sample run argument with STL10 dataset.
+```
+"YOLOv3SE_Train.exe" detector . voc2007.data darknet53.cfg
+```
 #### 1.2. Train classifier
 Example : [Yolov3_SpringEdition_Train/ClassifierExample/](Yolov3_SpringEdition_Train/ClassifierExample/)
 
 ##### Sample directory structure with STL10 dataset.
 ```
-┌ stl10
+┌ stl10train
 │  ├ airplane
 │  ├ bird
 │  ├ car
@@ -58,7 +80,7 @@ Example : [Yolov3_SpringEdition_Train/ClassifierExample/](Yolov3_SpringEdition_T
 ├ stl10.names
 ├ train.txt
 ├ cudnn64_7.dll
-├ YOLOv3SE_ Train.exe
+└ YOLOv3SE_ Train.exe
 ```
 ##### Sample run argument with STL10 dataset.
 ```
@@ -113,16 +135,14 @@ void Release();
 ```
 Release loaded network.
 
-### 3. Setup for train(classification).
-
-
-
 
 
 Technical issue
 ---------------
 
 Original YOLOv3(darknet) is linux version. And **[AlexeyAB](https://github.com/AlexeyAB/darknet)** already made YOLOv3 Windows version. But, his detection method is too slow on Windows. I don't know why exactly. Maybe it has bottleneck. So, I converted **[darknet](https://github.com/pjreddie/darknet)**(YOLOv3 only) again.
+
+* YOLOv1 doesn't work.
 
 change log
 ----------
