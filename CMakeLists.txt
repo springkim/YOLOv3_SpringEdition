@@ -3,7 +3,7 @@
 #  YOLOv3_SpringEdition
 #
 #  Created by kimbomm on 2018. 04. 01...
-#  Copyright 2018 Sogang CVIP. All rights reserved.
+#  Copyright 2018 kimbomm. All rights reserved.
 #
 cmake_minimum_required(VERSION 3.4)
 project(YOLOv3_SpringEdition)
