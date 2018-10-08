@@ -59,10 +59,10 @@ void ClassifyTest() {
 }
 int main() {
 	///Test YOLOv3 based on darknet53
-	Yolo3Test("yolov3_darknet53.weights","yolov3_darknet53_coco.cfg","coco.names");
+	//Yolo3Test("yolov3_darknet53.weights","yolov3_darknet53_coco.cfg","coco.names");
 
 	///Test YOLOv3 based on darknet53 with SPP(spatial pyramid pooling)
-	//Yolo3Test("yolov3_darknet53_spp.weights", "yolov3_darknet53_spp_coco.cfg", "coco.names");
+	Yolo3Test("yolov3_darknet53_spp.weights", "yolov3_darknet53_spp_coco.cfg", "coco.names");
 
 	///Test Classifier
 	//ClassifyTest();

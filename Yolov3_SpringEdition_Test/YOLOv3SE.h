@@ -259,10 +259,11 @@ private:
 		unsigned char *data = (unsigned char *)src->imageData;
 		int step = src->widthStep;
 		int i, j, k;
+		int rgbgr[3] = { 2,1,0 };
 		for (i = 0; i < out.h; ++i) {
 			for (k = 0; k < out.c; ++k) {
 				for (j = 0; j < out.w; ++j) {
-					out.data[k*out.w*out.h + i*out.w + j] = data[i*step + j*out.c + k] / 255.F;
+					out.data[k*out.w*out.h + i*out.w + j] = data[i*step + j*out.c + rgbgr[k]] / 255.F;
 				}
 			}
 		}
