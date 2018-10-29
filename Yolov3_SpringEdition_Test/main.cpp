@@ -1,5 +1,6 @@
 #include"YOLOv3SE.h"
 #include<chrono>
+#include<iostream>
 void Yolo3Test(std::string weights, std::string cfg,std::string names) {
 	YOLOv3 detector;
 	detector.Create(weights,cfg,names);
@@ -21,13 +22,13 @@ void Yolo3Test(std::string weights, std::string cfg,std::string names) {
 		t_end = std::chrono::system_clock::now();
 		diff = t_end - t_beg;
 		std::cout << "FPS : " << 1.0 / diff.count() << "\t" << diff.count() << std::endl;
-		//continue;
+		continue;
 		for (auto&box : boxes) {
 			cv::putText(img, detector.Names(box.m_class), box.tl(), cv::FONT_HERSHEY_SIMPLEX, 1.0, colors[box.m_class], 2);
 			cv::rectangle(img, box, colors[box.m_class], 2);
 		}
 		cv::imshow("original", img);
-		if (cv::waitKey(0) == 27) {
+		if (cv::waitKey(10) == 27) {
 			break;
 		}
 	}
@@ -62,7 +63,8 @@ int main() {
 	//Yolo3Test("yolov3_darknet53.weights","yolov3_darknet53_coco.cfg","coco.names");
 
 	///Test YOLOv3 based on darknet53 with SPP(spatial pyramid pooling)
-	Yolo3Test("yolov3_darknet53_spp.weights", "yolov3_darknet53_spp_coco.cfg", "coco.names");
+	Yolo3Test("yolov3_darknet53.weights", "yolov3_darknet53_coco.cfg", "coco.names");
+	//Yolo3Test("yolov3_darknet53_spp.weights", "yolov3_darknet53_spp_coco.cfg", "coco.names");
 
 	///Test Classifier
 	//ClassifyTest();

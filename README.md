@@ -1,12 +1,6 @@
 YOLOv3_SpringEdition <img src="https://i.imgur.com/oYejfWp.png" title="Windows8" width="48">
 --------------------------------------------------------------------------------------------
 
-
-작성중....
-VS2017
-LINUX
-기타 등등...
-
 <img src="https://i.imgur.com/ElCyyzT.png" title="Windows8" width="48"><img src="https://i.imgur.com/O5bye0l.png" width="48"><img src="https://i.imgur.com/kmfOMZz.png" width="48"><img src="https://i.imgur.com/6OT8yM9.png" width="48">
 
 #### YOLOv3 C++ Windows and Linux interface library. (Train,Detect both)
@@ -150,21 +144,24 @@ change log
 **build_windows.bat** and **build_linux.sh** will download automatically correct version of cudnn. and build as cmake.
 
 ```
-Windows + 1080ti + CUDA8.0 + cudnn7.1 + yolov3      = 36FPS
-Windows + 1080ti + CUDA9.0 + cudnn7.1 + yolov3      = 36FPS
-Windows + 1080   + CUDA9.0 + cudnn7.1 + yolov3      = 27FPS
-Windows + 1080   + CUDA9.0 + cudnn7.1 + yolov3(spp) = 15FPS
-Ubuntu  + 1080   + CUDA8.0 + cudnn7.1 + yolov3      = 30FPS
-Ubuntu  + 1080   + CUDA9.0 + cudnn7.1 + yolov3      = 30FPS
+Windows + 2080ti + CUDA 10.0 + cudnn7.3.1 + yolov3   = 44FPS
+
+Windows + 1080ti + CUDA 8.0 + cudnn7.1 + yolov3      = 36FPS
+Windows + 1080ti + CUDA 9.0 + cudnn7.1 + yolov3      = 36FPS
+
+Windows + 1080   + CUDA 9.0 + cudnn7.1 + yolov3      = 27FPS
+Windows + 1080   + CUDA 9.0 + cudnn7.1 + yolov3(spp) = 15FPS
+Ubuntu  + 1080   + CUDA 8.0 + cudnn7.1 + yolov3      = 30FPS
+Ubuntu  + 1080   + CUDA 9.0 + cudnn7.1 + yolov3      = 30FPS
 ```
 
 Software requirement
 --------------------
 
 -	CMake
--	CUDA 8.0 or 9.0(9.1 is not working)
+-	CUDA 8.0 or 9.0(9.1 is not working) or 10.0
 -	OpenCV(for testing)
--	Visual Studio 2015
+-	Visual Studio 2013, 2015, 2017
 
 Hardware requirement
 --------------------
