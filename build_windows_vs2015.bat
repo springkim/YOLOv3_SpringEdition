@@ -1,5 +1,5 @@
 @echo off
-mkdir -p build\Release
+mkdir build\Release
 nvcc -V | findstr /C:"release 8.0" > cuda_ver.txt
 set /p "ver80="<"cuda_ver.txt"
 if not "%ver80%" equ "" (
