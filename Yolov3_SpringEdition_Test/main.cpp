@@ -8,29 +8,33 @@ void Yolo3Test(std::string weights, std::string cfg,std::string names) {
 	for (int i = 0; i < 80; i++) {
 		colors.push_back(cv::Scalar(rand() % 127 + 128, rand() % 127 + 128, rand() % 127 + 128));
 	}
+	cv::VideoCapture vc("D:/01.KEPCO/train_data/05.excavator/¹ÌÅÂ±ë/youtube2/Real Life Rocket League  Car Soccer Game.mp4");
 	std::fstream fin("voc2007valid.txt", std::ios::in);
-	while (fin.eof() == false) {
-		std::string line;
-		std::getline(fin, line);
-		if (line.length() == 0)break;
-		cv::Mat img = cv::imread(line);
-		
+	cv::Mat frame;
+	while(vc.read(frame)){
+	//while (fin.eof() == false) {
+		//std::string line;
+		//std::getline(fin, line);
+		//if (line.length() == 0)break;
+		//cv::Mat img = cv::imread(line);
+		cv::Mat img = cv::imread("C:/Users/VIRNECT/Desktop/KakaoTalk_Photo_20190321_1730_56891.jpg");
 		std::chrono::system_clock::time_point t_beg, t_end;
 		std::chrono::duration<double> diff;
 		t_beg = std::chrono::system_clock::now();
-		auto boxes = detector.Detect(img, 0.5F);
+		auto boxes = detector.Detect(img, 0.3F);
 		t_end = std::chrono::system_clock::now();
 		diff = t_end - t_beg;
 		std::cout << "FPS : " << 1.0 / diff.count() << "\t" << diff.count() << std::endl;
-		continue;
+		//continue;
 		for (auto&box : boxes) {
-			cv::putText(img, detector.Names(box.m_class), box.tl(), cv::FONT_HERSHEY_SIMPLEX, 1.0, colors[box.m_class], 2);
-			cv::rectangle(img, box, colors[box.m_class], 2);
+			cv::putText(img, detector.Names(box.m_class), box.tl()-cv::Point(0,5), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(160,96,173), 2);
+			cv::rectangle(img, box, cv::Scalar(160, 96, 173), 2);
 		}
-		cv::imshow("original", img);
-		if (cv::waitKey(10) == 27) {
+		cv::imwrite("original.jpg", img);
+		if (cv::waitKey(0) == 27) {
 			break;
 		}
+		break;
 	}
 	cv::destroyAllWindows();
 	detector.Release();
@@ -63,8 +67,8 @@ int main() {
 	//Yolo3Test("yolov3_darknet53.weights","yolov3_darknet53_coco.cfg","coco.names");
 
 	///Test YOLOv3 based on darknet53 with SPP(spatial pyramid pooling)
-	Yolo3Test("yolov3_darknet53.weights", "yolov3_darknet53_coco.cfg", "coco.names");
-	//Yolo3Test("yolov3_darknet53_spp.weights", "yolov3_darknet53_spp_coco.cfg", "coco.names");
+	//Yolo3Test("yolov3_darknet53.weights", "yolov3_darknet53_coco.cfg", "coco.names");
+	Yolo3Test("yolov3_darknet53_spp.weights", "yolov3_darknet53_spp_coco.cfg", "coco.names");
 
 	///Test Classifier
 	//ClassifyTest();
