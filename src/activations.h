@@ -30,6 +30,10 @@ static inline float hardtan_activate(float x)
 }
 static inline float linear_activate(float x){return x;}
 static inline float logistic_activate(float x){return 1./(1. + exp(-x));}
+#define ESWISH_BETA 1.25
+static inline float eswish_activate(float x) {
+	return ESWISH_BETA*x*(1. / (1. + exp(-x)));
+}
 static inline float loggy_activate(float x){return 2./(1. + exp(-x)) - 1;}
 static inline float relu_activate(float x){return x*(x>0);}
 static inline float elu_activate(float x){return (x >= 0)*x + (x < 0)*(exp(x)-1);}
@@ -51,6 +55,8 @@ static inline float lhtan_activate(float x)
     if(x > 1) return .001*(x-1) + 1;
     return x;
 }
+
+
 static inline float lhtan_gradient(float x)
 {
     if(x > 0 && x < 1) return 1;
@@ -64,6 +70,9 @@ static inline float hardtan_gradient(float x)
 }
 static inline float linear_gradient(float x){return 1;}
 static inline float logistic_gradient(float x){return (1-x)*x;}
+static inline float eswish_gradient(float x) {
+	return x+(ESWISH_BETA - x)*x;
+}
 static inline float loggy_gradient(float x)
 {
     float y = (x+1.)/2.;

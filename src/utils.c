@@ -211,7 +211,7 @@ void pm(int M, int N, float *A)
     printf("\n");
 }
 
-void find_replace(char *str, char *orig, char *rep, char *output)
+int find_replace(char *str, char *orig, char *rep, char *output)
 {
 	char buffer[4096] = { 0 };
 	char *p, *q = NULL;
@@ -223,10 +223,11 @@ void find_replace(char *str, char *orig, char *rep, char *output)
 	}
 	if (!q) {  // Is 'orig' even in 'str'?
 		sprintf(output, "%s", str);
-		return;
+		return 0;
 	}
 	*q = '\0';
 	sprintf(output, "%s%s%s", buffer, rep, q + strlen(orig));
+	return 1;
 }
 
 float sec(clock_t clocks)

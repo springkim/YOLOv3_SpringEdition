@@ -456,10 +456,19 @@ void fill_truth_detection(char *path, int num_boxes, float *truth, int classes, 
     //find_replace(labelpath, "JPEGImages", "labels", labelpath);
 
     //find_replace(labelpath, "raw", "labels", labelpath);
-    find_replace(labelpath, ".jpg", ".txt", labelpath);
-    find_replace(labelpath, ".png", ".txt", labelpath);
-    find_replace(labelpath, ".JPG", ".txt", labelpath);
-    find_replace(labelpath, ".JPEG", ".txt", labelpath);
+	
+	if (find_replace(path, ".jpg", ".txt", labelpath) == 0) {
+		if (find_replace(labelpath, ".png", ".txt", labelpath) == 0) {
+			if (find_replace(labelpath, ".JPG", ".txt", labelpath) == 0) {
+				if (find_replace(labelpath, ".JPEG", ".txt", labelpath) == 0) {
+
+				}
+			}
+		}
+	}
+    
+    
+    
     int count = 0;
     box_label *boxes = read_boxes(labelpath, &count);
     randomize_boxes(boxes, count);
