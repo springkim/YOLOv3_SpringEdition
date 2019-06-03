@@ -36,6 +36,9 @@ __device__ float relie_activate_kernel(float x){return (x>0) ? x : .01f*x;}
 __device__ float ramp_activate_kernel(float x){return x*(x>0)+.1f*x;}
 __device__ float leaky_activate_kernel(float x){return (x>0) ? x : .1f*x;}
 __device__ float tanh_activate_kernel(float x){return (2.f/(1 + expf(-2*x)) - 1);}
+__device__ float eswish_activate_kernel(float x){
+	return 1.25F*x*(1. / (1. + expf(-x)));
+}
 __device__ float plse_activate_kernel(float x)
 {
     if(x < -4) return .01f * (x + 4);
@@ -69,6 +72,9 @@ __device__ float relie_gradient_kernel(float x){return (x>0) ? 1 : .01f;}
 __device__ float ramp_gradient_kernel(float x){return (x>0)+.1f;}
 __device__ float leaky_gradient_kernel(float x){return (x>0) ? 1 : .1f;}
 __device__ float tanh_gradient_kernel(float x){return 1-x*x;}
+__device__ float eswish_gradient_kernel(float x){
+	return x+(1.25F - x)*x;
+}
 __device__ float plse_gradient_kernel(float x){return (x < 0 || x > 1) ? .01f : .125f;}
 __device__ float stair_gradient_kernel(float x)
 {
@@ -79,6 +85,8 @@ __device__ float stair_gradient_kernel(float x)
 __device__ float activate_kernel(float x, ACTIVATION a)
 {
     switch(a){
+		case ESWISH:
+			return eswish_activate_kernel(x);
         case LINEAR:
             return linear_activate_kernel(x);
         case LOGISTIC:
@@ -114,6 +122,8 @@ __device__ float activate_kernel(float x, ACTIVATION a)
 __device__ float gradient_kernel(float x, ACTIVATION a)
 {
     switch(a){
+		case ESWISH:
+			return eswish_gradient_kernel(x);
         case LINEAR:
             return linear_gradient_kernel(x);
         case LOGISTIC:
@@ -185,6 +195,19 @@ __global__ void activate_array_kernel(float *x, int n, ACTIVATION a)
 {
     int i = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
     if(i < n) x[i] = activate_kernel(x[i], a);
+}
+__global__ void activate_array_yolo_layer(float* x,int N,int I,int outputs,int step,ACTIVATION a){
+	int b = threadIdx.x;
+	int n = threadIdx.y;
+	int i = blockIdx.x;
+	int idx=b*outputs+n*step+i;
+	x[idx]=activate_kernel(x[idx],a); 
+	x[idx+I*2]=activate_kernel(x[idx+I*2],a); 
+}
+extern "C" void activate_array_gpu_yolo_layer(float* x,int B,int N,int I,int outputs,int step,ACTIVATION a)
+{
+	activate_array_yolo_layer<<<dim3(I),dim3(B,N)>>>(x, N,I,outputs,step,a);
+    check_error(cudaPeekAtLastError());
 }
 
 __global__ void gradient_array_kernel(float *x, int n, ACTIVATION a, float *delta)
